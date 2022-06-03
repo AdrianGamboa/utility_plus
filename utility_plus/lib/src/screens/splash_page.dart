@@ -13,7 +13,6 @@ class SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-
     waitSplash();
   }
 
@@ -28,7 +27,8 @@ class SplashPageState extends State<SplashPage> {
   }
 
   waitSplash() async {
-    await Future.delayed(const Duration(milliseconds: 1500), () {});
-    //Navigator.of(context).pushReplacementNamed('/main');
+    await Future.delayed(const Duration(seconds: 3), () {
+      Navigator.of(context).pushReplacementNamed('/main');
+    });
   }
 }
