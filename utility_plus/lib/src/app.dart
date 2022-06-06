@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/screens/about_page.dart';
+import 'package:utility_plus/src/screens/login_page.dart';
 import 'package:utility_plus/src/screens/main_page.dart';
 import 'package:utility_plus/src/screens/splash_page.dart';
 
@@ -9,8 +10,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Utility+', initialRoute: "/", routes: {
+    return MaterialApp(
+      title: 'Utility+', initialRoute: "/", routes: {
       "/": (BuildContext context) => const SplashPage(),
+      "/login": (BuildContext context) => LoginPage(),
       "/main": (BuildContext context) => const MainPage(),
       "/about": (BuildContext context) => const AboutPage(),
     });

@@ -21,7 +21,7 @@ class SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: Center(
           child: SizedBox(
-        child: Image.asset("assets/UtilityC.png"),
+        child: Image.asset("assets/images/UtilityC.png"),
       )),
     );
   }
