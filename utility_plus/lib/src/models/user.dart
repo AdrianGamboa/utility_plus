@@ -2,24 +2,31 @@ import 'package:mongo_dart/mongo_dart.dart';
 
 class User {
   final ObjectId id;
-  final String name;
-  final int age;
-  final int phone;
+  final String nombre;
+  final String primerApellido;
+  final String segundoApellido;
+  final String email;
+  
+  final String uid;
 
-  User({required this.id, required this.name, required this.age, required this.phone});
+  User({required this.id, required this.nombre, required this.primerApellido, required this.segundoApellido, required this.email, required this.uid});
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'name': name,
-      'age': age,
-      'phone': phone,
+      'nombre': nombre,
+      'primerApellido': primerApellido,
+      'segundoApellido': segundoApellido,
+      'email': email,
+      'uid': uid,
     };
   }
 
   User.fromMap(Map<String, dynamic> map)
-      : name = map['name'],
+      : nombre = map['nombre'],
         id = map['_id'],
-        age = map['age'],
-        phone = map['phone'];
+        primerApellido = map['primerApellido'],
+        segundoApellido = map['segundoApellido'],
+        email = map['email'],
+        uid = map['uid'];
 }

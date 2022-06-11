@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:utility_plus/src/database/firebase.dart';
+
+import '../utils/global.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({
@@ -14,6 +17,7 @@ class SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     waitSplash();
+    FireDatabase.initializeFirebase();
   }
 
   @override
@@ -21,14 +25,21 @@ class SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: Center(
           child: SizedBox(
-        child: Image.asset("assets/images/UtilityC.png"),
+        child: Image.asset("assets/images/UtilityC.png",width:150),
       )),
     );
   }
 
   waitSplash() async {
     await Future.delayed(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacementNamed('/main');
+      //Valida si el usuario esta logueado
+      userFire = authFire.currentUser;
+      if (userFire == null) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      } else {
+        print(userFire!.uid.toString());
+        Navigator.of(context).pushReplacementNamed('/main');
+      }
     });
   }
 }

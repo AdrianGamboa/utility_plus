@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:utility_plus/src/screens/about_page.dart';
 import 'package:utility_plus/src/screens/login_page.dart';
 import 'package:utility_plus/src/screens/main_page.dart';
+import 'package:utility_plus/src/screens/register_page.dart';
 import 'package:utility_plus/src/screens/splash_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
       "/login": (BuildContext context) => LoginPage(),
       "/main": (BuildContext context) => const MainPage(),
       "/about": (BuildContext context) => const AboutPage(),
+      "/register": (BuildContext context) => const RegisterPage(),
     });
   }
 }

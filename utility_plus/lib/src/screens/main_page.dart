@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:utility_plus/src/services/AuthenticationServices.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -53,7 +54,7 @@ class _MainPageState extends State<MainPage>
               PopupMenuButton<String>(
                 onSelected: handleClick,
                 itemBuilder: (BuildContext context) {
-                  return {'Perfil', 'Ajustes', 'Acerca de'}
+                  return {'Perfil', 'Ajustes', 'Acerca de', 'Cerrar sesión'}
                       .map((String choice) {
                     return PopupMenuItem<String>(
                       value: choice,
@@ -163,6 +164,9 @@ class _MainPageState extends State<MainPage>
         break;
       case 'Acerca de':
         Navigator.of(context).pushNamed('/about');
+        break;
+      case 'Cerrar sesión':
+        AuthenticationService().signOut(context);
         break;
     }
   }

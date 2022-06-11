@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "996228569570",
+    "project_id": "utilityplus-efefe",
+    "storage_bucket": "utilityplus-efefe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996228569570:android:da5d96969b8ed1f1b101bb",
+        "android_client_info": {
+          "package_name": "com.example.utility_plus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "996228569570-i185c9869nso11nhfge9urka4fep15fd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnpOxaS0xvBqpCOi3kXppxwflhSY58Crc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "996228569570-i185c9869nso11nhfge9urka4fep15fd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
