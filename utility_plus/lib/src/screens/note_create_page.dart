@@ -1,37 +1,31 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:mongo_dart/mongo_dart.dart' as m;
 import 'package:utility_plus/src/database/note_db.dart';
 import 'package:utility_plus/src/models/note.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:utility_plus/src/utils/view_image_handler.dart';
 
-class NoteView extends StatefulWidget {
-  final dynamic recordNote;
-  const NoteView({Key? key, required this.recordNote}) : super(key: key);
+class NoteCreate extends StatefulWidget {
+  const NoteCreate({Key? key}) : super(key: key);
 
   @override
-  State<NoteView> createState() => _NoteViewState();
+  State<NoteCreate> createState() => _NoteCreateState();
 }
 
-class _NoteViewState extends State<NoteView> {
+class _NoteCreateState extends State<NoteCreate> {
   /// Variables
   File? _imageFile;
 
   Color? _tempMainColor;
   Color? _tempShadeColor;
-  Color? _mainColor;
-  Color? _shadeColor;
+  Color? _mainColor = Colors.blue;
+  Color? _shadeColor = Colors.blue[100];
 
   final _titleField = TextEditingController();
   final _contentField = TextEditingController();
   bool _pinButton = false;
-
-  @override
-  void initState() {
-    _loadNote(widget.recordNote);
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +37,6 @@ class _NoteViewState extends State<NoteView> {
         appBar: AppBar(
           backgroundColor: _mainColor,
           actions: <Widget>[
-            IconButton(
-              icon: const Icon(
-                Icons.delete_outline,
-                color: Colors.white,
-              ),
-              onPressed: () => _deleteNote(widget.recordNote),
-            ),
             IconButton(
               icon: const Icon(
                 Icons.color_lens_outlined,
@@ -79,7 +66,7 @@ class _NoteViewState extends State<NoteView> {
               ),
               onPressed: () {
                 // do something
-                _updateNote(widget.recordNote);
+                insertNote();
               },
             )
           ],
@@ -235,8 +222,8 @@ class _NoteViewState extends State<NoteView> {
   _getFromCamera() async {
     XFile? pickedFile = await ImagePicker().pickImage(
       source: ImageSource.camera,
-      //maxWidth: 200,
-      //maxHeight: 200,
+      // maxWidth: 200,
+      // maxHeight: 200,
     );
     if (pickedFile != null) {
       setState(() {
@@ -245,31 +232,15 @@ class _NoteViewState extends State<NoteView> {
     }
   }
 
-  _loadNote(var arg) {
-    _titleField.text = arg['title'];
-    _contentField.text = arg['content'];
-    _pinButton = arg['pin'];
-    _shadeColor = Color(arg['shadeColor']);
-    _mainColor = Color(arg['mainColor']);
-  }
-
-  _mapNote(var arg) {
-    return Note(
-        id: arg['_id'],
+  insertNote() async {
+    final note = Note(
+        id: m.ObjectId(),
         title: _titleField.text,
         content: _contentField.text,
         pin: _pinButton,
         shadeColor: _shadeColor!.value,
         mainColor: _mainColor!.value);
-  }
-
-  _updateNote(var arg) async {
-    await NoteDB.update(_mapNote(arg));
-    Navigator.of(context).pop();
-  }
-
-  _deleteNote(var arg) async {
-    await NoteDB.delete(_mapNote(arg));
+    await NoteDB.insert(note);
     Navigator.of(context).pop();
   }
 }

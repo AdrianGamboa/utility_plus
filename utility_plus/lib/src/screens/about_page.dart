@@ -29,7 +29,7 @@ class AboutPageState extends State<AboutPage> {
           children: [
             SizedBox(
               height: 250,
-              child: Image.asset("assets/UtilityC.png"),
+              child: Image.asset("assets/images/UtilityC.png"),
             ),
             const Text(
               'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel efficitur dui. Curabitur eu metus nisl. Maecenas tempus, neque eu maximus pellentesque, mi sapien commodo neque, nec viverra quam enim eu nunc. Aenean lobortis sapien pretium dapibus fringilla. Sed vitae dui at tellus fermentum viverra at a sapien. Pellentesque bibendum tellus at massa rhoncus, at pharetra lorem rhoncus. Nulla porta dapibus purus quis commodo. ',

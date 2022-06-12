@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/services/AuthenticationServices.dart';
+import 'package:utility_plus/src/screens/note_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -12,6 +13,8 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   int index = 0;
   String pageName = 'Planificación';
+  //Pantallas de la barra de navegacion inferior
+  NotePage notePage = const NotePage();
   //Controladores de animación
   int _controller1 = 1;
   int _controller2 = 0;
@@ -25,11 +28,11 @@ class _MainPageState extends State<MainPage>
     curve: Curves.elasticOut,
   );
 
-  final screens = [
-    const Center(child: Text('Planificación')),
-    const Center(child: Text('Notas')),
-    const Center(child: Text('Recordatorios')),
-    const Center(child: Text('Finanzas')),
+  late List<Widget> screens = [
+    const CircularProgressIndicator(),
+    notePage,
+    const CircularProgressIndicator(),
+    const CircularProgressIndicator(),
   ];
 
   @override
