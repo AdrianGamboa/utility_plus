@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -5,6 +6,8 @@ import 'package:utility_plus/src/database/note_db.dart';
 import 'package:utility_plus/src/models/note.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:utility_plus/src/utils/view_image_handler.dart';
+
+import '../utils/alerts.dart';
 
 class NoteView extends StatefulWidget {
   final dynamic recordNote;
@@ -17,6 +20,7 @@ class NoteView extends StatefulWidget {
 class _NoteViewState extends State<NoteView> {
   /// Variables
   File? _imageFile;
+  Image? _imageSaved;
 
   Color? _tempMainColor;
   Color? _tempShadeColor;
@@ -48,7 +52,7 @@ class _NoteViewState extends State<NoteView> {
                 Icons.delete_outline,
                 color: Colors.white,
               ),
-              onPressed: () => _deleteNote(widget.recordNote),
+              onPressed: () => _showConfirmDialog(context),
             ),
             IconButton(
               icon: const Icon(
@@ -91,7 +95,13 @@ class _NoteViewState extends State<NoteView> {
               TextField(
                 controller: _titleField,
                 decoration: const InputDecoration(
-                    border: InputBorder.none, hintText: 'Título'),
+                    border: InputBorder.none,
+                    hintText: 'Título',
+                    hintStyle: TextStyle(color: Colors.black38)),
+                style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold),
               ),
               const Divider(
                 thickness: 1,
@@ -100,7 +110,12 @@ class _NoteViewState extends State<NoteView> {
                 child: TextField(
                     controller: _contentField,
                     decoration: const InputDecoration(
-                        border: InputBorder.none, hintText: 'Contenido'),
+                        border: InputBorder.none,
+                        hintText: 'Contenido',
+                        hintStyle: TextStyle(color: Colors.black38)),
+                    style: const TextStyle(
+                      color: Colors.black54,
+                    ),
                     expands: true,
                     minLines: null,
                     maxLines: null,
@@ -110,7 +125,7 @@ class _NoteViewState extends State<NoteView> {
                 thickness: 1,
               ),
               Container(
-                  child: _imageFile == null
+                  child: _imageFile == null && _imageSaved == null
                       ? Container()
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +137,9 @@ class _NoteViewState extends State<NoteView> {
                                     borderRadius: BorderRadius.circular(15),
                                     child: ImageFullScreenWrapperWidget(
                                       dark: true,
-                                      child: Image.file(_imageFile!),
+                                      child: _imageSaved == null
+                                          ? Image.file(_imageFile!)
+                                          : _imageSaved!,
                                     ))),
                             Container(
                               width: 40,
@@ -139,6 +156,7 @@ class _NoteViewState extends State<NoteView> {
                                 onPressed: () {
                                   // do something
                                   _imageFile = null;
+                                  _imageSaved = null;
                                   setState(() {});
                                 },
                               ),
@@ -217,6 +235,40 @@ class _NoteViewState extends State<NoteView> {
     );
   }
 
+  _showConfirmDialog(BuildContext context) {
+    // set up the buttons
+    Widget cancelButton = TextButton(
+      child: const Text("Cancelar"),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: const Text("Continuar"),
+      onPressed: () {
+        _deleteNote(widget.recordNote);
+        Navigator.of(context).pop();
+        setState(() {});
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Confirmación"),
+      content: Text("Seguro que desea eliminar la Nota."),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   /// Get from gallery
   _getFromGallery() async {
     XFile? pickedFile = await ImagePicker().pickImage(
@@ -227,6 +279,7 @@ class _NoteViewState extends State<NoteView> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _imageSaved = null;
       });
     }
   }
@@ -241,7 +294,55 @@ class _NoteViewState extends State<NoteView> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _imageSaved = null;
       });
+    }
+  }
+
+  Future<String?> _uploadToFirebase(String pathName) async {
+    if (_imageFile != null) {
+      try {
+        // Upload file to the path 'images/pathName'
+        final uploadTask =
+            FirebaseStorage.instance.ref().child('images/$pathName');
+
+        await uploadTask.putFile(_imageFile!);
+        String url = await uploadTask.getDownloadURL();
+        return url;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  _updateToFirebase(String pathName) async {
+    if (_imageFile != null) {
+      try {
+        // Update file to the path'
+        final updateTask =
+            FirebaseStorage.instance.ref().child('images/$pathName');
+
+        await updateTask.writeToFile(_imageFile!);
+
+        return 'success';
+      } catch (e) {
+        return 'error';
+      }
+    }
+  }
+
+  _deleteFromFirebase(String pathName) async {
+    try {
+      // delete file from the path'
+      final deleteTask =
+          FirebaseStorage.instance.ref().child('images/$pathName');
+
+      await deleteTask.delete();
+
+      return 'success';
+    } catch (e) {
+      return 'error';
     }
   }
 
@@ -251,25 +352,72 @@ class _NoteViewState extends State<NoteView> {
     _pinButton = arg['pin'];
     _shadeColor = Color(arg['shadeColor']);
     _mainColor = Color(arg['mainColor']);
+    if (arg['image'] != null) {
+      _imageSaved = Image.network(arg['image']);
+    }
   }
 
   _mapNote(var arg) {
     return Note(
         id: arg['_id'],
+        uid: arg['uid'],
         title: _titleField.text,
         content: _contentField.text,
         pin: _pinButton,
         shadeColor: _shadeColor!.value,
-        mainColor: _mainColor!.value);
+        mainColor: _mainColor!.value,
+        lastDate: DateTime.now(),
+        image: arg['image']);
   }
 
   _updateNote(var arg) async {
-    await NoteDB.update(_mapNote(arg));
-    Navigator.of(context).pop();
+    if (_titleField.text.isEmpty &&
+        _contentField.text.isEmpty &&
+        _imageFile == null &&
+        _imageSaved == null) {
+      if (arg['image'] == null) {
+        await NoteDB.delete(_mapNote(arg));
+      } else {
+        _deleteFromFirebase(arg['_id'].$oid);
+        await NoteDB.delete(_mapNote(arg));
+      }
+
+      Navigator.of(context).pop();
+    } else {
+      try {
+        if (_imageSaved == null) {
+          if (_imageFile == null && arg['image'] == null) {
+            //Note without image
+          } else if (_imageFile != null && arg['image'] == null) {
+            //Create a new image for the note
+            arg['image'] = await _uploadToFirebase(arg['_id'].$oid);
+          } else if (_imageFile != null && arg['image'] != null) {
+            //Replace the existing image with a new one
+            _updateToFirebase(arg['_id'].$oid);
+          } else {
+            //Delete the current image of the note
+            _deleteFromFirebase(arg['_id'].$oid);
+            arg['image'] = null;
+          }
+        }
+
+        await NoteDB.update(_mapNote(arg));
+        Navigator.of(context).pop();
+      } catch (e) {
+        showAlertDialog(context, 'Error', 'Problema con el servidor');
+      }
+    }
   }
 
   _deleteNote(var arg) async {
-    await NoteDB.delete(_mapNote(arg));
-    Navigator.of(context).pop();
+    try {
+      if (arg['image'] != null) {
+        _deleteFromFirebase(arg['_id'].$oid);
+      }
+      await NoteDB.delete(_mapNote(arg));
+      Navigator.of(context).pop();
+    } catch (e) {
+      showAlertDialog(context, 'Error', 'Problema con el servidor');
+    }
   }
 }

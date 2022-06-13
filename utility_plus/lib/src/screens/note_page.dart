@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:intl/intl.dart';
 import 'package:utility_plus/src/database/note_db.dart';
 import 'package:utility_plus/src/screens/note_view_page.dart';
 
@@ -28,16 +29,19 @@ class NotePageState extends State<NotePage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Show loading indicator
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
             } else {
               if (snapshot.hasError) {
                 // Return error
-                return const Text('error');
+                return const Center(child: Text('error'));
               } else {
                 notesList = snapshot.data as List;
-
-                return buildNotes();
-                // Return Listview with documents data
+                if (notesList.isEmpty) {
+                  return const Center(child: Text('Nada por aquí'));
+                } else {
+                  return buildNotes();
+                  // Return Listview with documents data
+                }
               }
             }
           }),
@@ -47,7 +51,6 @@ class NotePageState extends State<NotePage> {
               .pushNamed('/notecreate')
               .then((value) => setState(() {}));
         },
-        backgroundColor: Colors.orangeAccent,
         child: const Icon(
           Icons.add,
         ),
@@ -73,9 +76,7 @@ class NotePageState extends State<NotePage> {
               fit: StackFit.passthrough,
               children: [
                 Card(
-                  color: Color(notesList[index]['shadeColor']) == Colors.white
-                      ? Color(notesList[index]['mainColor'])
-                      : Color(notesList[index]['shadeColor']),
+                  color: Color(notesList[index]['mainColor']),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -85,8 +86,10 @@ class NotePageState extends State<NotePage> {
                         child: Text(notesList[index]['title'],
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(
                         height: 15,
@@ -97,15 +100,24 @@ class NotePageState extends State<NotePage> {
                           notesList[index]['content'],
                           overflow: TextOverflow.ellipsis,
                           maxLines: 12,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                       const SizedBox(
                         height: 15,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 10, right: 10, bottom: 10),
                         child: Text(
-                          'fecha de creación',
+                          DateFormat.yMMMd()
+                              .add_jm()
+                              .format(notesList[index]['lastDate']),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ],

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'mongodatabase.dart';
 import '../models/note.dart';
@@ -6,7 +7,9 @@ class NoteDB {
   static Future<List<Map<String, dynamic>>> getDocuments() async {
     try {
       final notes = await MongoDatabase.noteCollection
-          .find(where.sortBy("pin", descending: true))
+          .find(where
+              .eq('uid', FirebaseAuth.instance.currentUser!.uid)
+              .sortBy("pin", descending: true))
           .toList();
       //print(notes.toString());
       return notes;

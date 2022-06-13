@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +8,8 @@ import 'package:utility_plus/src/database/note_db.dart';
 import 'package:utility_plus/src/models/note.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:utility_plus/src/utils/view_image_handler.dart';
+
+import '../utils/alerts.dart';
 
 class NoteCreate extends StatefulWidget {
   const NoteCreate({Key? key}) : super(key: key);
@@ -20,8 +24,8 @@ class _NoteCreateState extends State<NoteCreate> {
 
   Color? _tempMainColor;
   Color? _tempShadeColor;
-  Color? _mainColor = Colors.blue;
-  Color? _shadeColor = Colors.blue[100];
+  Color? _mainColor = Colors.orange;
+  Color? _shadeColor = Colors.orange[100];
 
   final _titleField = TextEditingController();
   final _contentField = TextEditingController();
@@ -78,7 +82,13 @@ class _NoteCreateState extends State<NoteCreate> {
               TextField(
                 controller: _titleField,
                 decoration: const InputDecoration(
-                    border: InputBorder.none, hintText: 'Título'),
+                    border: InputBorder.none,
+                    hintText: 'Título',
+                    hintStyle: TextStyle(color: Colors.black38)),
+                style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold),
               ),
               const Divider(
                 thickness: 1,
@@ -87,7 +97,12 @@ class _NoteCreateState extends State<NoteCreate> {
                 child: TextField(
                     controller: _contentField,
                     decoration: const InputDecoration(
-                        border: InputBorder.none, hintText: 'Contenido'),
+                        border: InputBorder.none,
+                        hintText: 'Contenido',
+                        hintStyle: TextStyle(color: Colors.black38)),
+                    style: const TextStyle(
+                      color: Colors.black54,
+                    ),
                     expands: true,
                     minLines: null,
                     maxLines: null,
@@ -232,15 +247,48 @@ class _NoteCreateState extends State<NoteCreate> {
     }
   }
 
+  Future<String?> _uploadToFirebase(String pathName) async {
+    if (_imageFile != null) {
+      try {
+        // Upload file and metadata to the path 'images/mountains.jpg'
+        final uploadTask =
+            FirebaseStorage.instance.ref().child('images/$pathName');
+
+        await uploadTask.putFile(_imageFile!);
+        String url = await uploadTask.getDownloadURL();
+        return url;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   insertNote() async {
-    final note = Note(
-        id: m.ObjectId(),
-        title: _titleField.text,
-        content: _contentField.text,
-        pin: _pinButton,
-        shadeColor: _shadeColor!.value,
-        mainColor: _mainColor!.value);
-    await NoteDB.insert(note);
-    Navigator.of(context).pop();
+    if (_titleField.text.isEmpty &&
+        _contentField.text.isEmpty &&
+        _imageFile == null) {
+      Navigator.of(context).pop();
+    } else {
+      try {
+        var id = m.ObjectId();
+
+        final note = Note(
+            id: id,
+            uid: FirebaseAuth.instance.currentUser!.uid,
+            title: _titleField.text,
+            content: _contentField.text,
+            pin: _pinButton,
+            shadeColor: _shadeColor!.value,
+            mainColor: _mainColor!.value,
+            lastDate: DateTime.now(),
+            image: await _uploadToFirebase(id.$oid));
+
+        await NoteDB.insert(note);
+        Navigator.of(context).pop();
+      } catch (e) {
+        showAlertDialog(context, 'Error', 'Problema con el servidor');
+      }
+    }
   }
 }
