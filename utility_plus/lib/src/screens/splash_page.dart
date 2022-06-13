@@ -18,14 +18,20 @@ class SplashPageState extends State<SplashPage> {
     super.initState();
     waitSplash();
     FireDatabase.initializeFirebase();
+
+    
   }
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body: Center(
           child: SizedBox(
-        child: Image.asset("assets/images/UtilityC.png",width:150),
+        child: themeManager.themeMode == ThemeMode.light?
+              Image.asset(
+                  "assets/images/UtilityC.png",width: 120):Image.asset(
+                  "assets/images/UtilityO.png",width: 120),
       )),
     );
   }
@@ -43,3 +49,4 @@ class SplashPageState extends State<SplashPage> {
     });
   }
 }
+  

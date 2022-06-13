@@ -7,11 +7,9 @@ class UserDB{
   static Future<List<Map<String, dynamic>>> getDocuments() async {
     try {
       final users = await MongoDatabase.userCollection.find().toList();
-      print(users.toString());
       return users;
     } catch (e) {
       dynamic d;
-      print(e);
       d=e;
       return Future.value(d);
     }
@@ -20,7 +18,6 @@ class UserDB{
   static Future<Map<String, dynamic>?> getUser(nombre,password) async {
     
       final users = await MongoDatabase.userCollection.findOne(m.where.eq("email", nombre).and(m.where.eq("password",password)));
-      print(users.toString());
       return users;
     
   }

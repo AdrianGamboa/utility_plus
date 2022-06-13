@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as a;
 import 'package:flutter/material.dart';
@@ -12,6 +13,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  @override
+  void initState() {
+    super.initState();
+  }
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
   //Loguear usuario en la app con email y contraseña, utilizando Firebase
@@ -35,8 +40,10 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: <Widget>[
               const SizedBox(height: 150,),
+              themeManager.themeMode == ThemeMode.light?
               Image.asset(
-                  "assets/images/UtilityC.png",width: 120),
+                  "assets/images/UtilityC.png",width: 120):Image.asset(
+                  "assets/images/UtilityO.png",width: 120),
               const SizedBox(height: 30,),
               SizedBox(
                 width: 300,
@@ -110,10 +117,10 @@ class _LoginPageState extends State<LoginPage> {
               Text.rich(
                 TextSpan(
                   text: "¿Has olvidado tu contraseña? ",
-                  style: TextStyle(color: Color(0xff707070)),
+                  style: const TextStyle(color: Color(0xff707070)),
                   recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          Navigator.of(context).pushNamed("/register");
+                          Navigator.of(context).pushNamed('/recoverPass');
                         },  
                 ),
               ),
