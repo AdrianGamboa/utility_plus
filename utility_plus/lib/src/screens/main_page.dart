@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/services/AuthenticationServices.dart';
 import 'package:utility_plus/src/screens/note_page.dart';
+import 'package:utility_plus/src/screens/planning_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -15,6 +16,7 @@ class _MainPageState extends State<MainPage>
   String pageName = 'Planificación';
   //Pantallas de la barra de navegacion inferior
   NotePage notePage = const NotePage();
+  PlanningPage planningPage = const PlanningPage();
   //Controladores de animación
   int _controller1 = 1;
   int _controller2 = 0;
@@ -29,7 +31,7 @@ class _MainPageState extends State<MainPage>
   );
 
   late List<Widget> screens = [
-    const CircularProgressIndicator(),
+    planningPage,
     notePage,
     const CircularProgressIndicator(),
     const CircularProgressIndicator(),
@@ -85,9 +87,11 @@ class _MainPageState extends State<MainPage>
           //#1
           NavigationDestination(
               icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1000),
+                duration: const Duration(milliseconds: 700),
                 transitionBuilder: (child, anim) => RotationTransition(
-                  turns: Tween<double>(begin: 0.0, end: 2.0).animate(anim),
+                  turns: child.key == const ValueKey('icon1')
+                      ? Tween<double>(begin: 0.75, end: 1).animate(anim)
+                      : Tween<double>(begin: 0.75, end: 1).animate(anim),
                   child: FadeTransition(opacity: anim, child: child),
                 ),
                 child: _controller1 == 0
@@ -99,9 +103,9 @@ class _MainPageState extends State<MainPage>
           //#2
           NavigationDestination(
               icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1000),
+                duration: const Duration(milliseconds: 700),
                 transitionBuilder: (child, anim) => RotationTransition(
-                  turns: Tween<double>(begin: 0.0, end: 2.0).animate(anim),
+                  turns: Tween<double>(begin: 0.0, end: 1.0).animate(anim),
                   child: ScaleTransition(scale: anim, child: child),
                 ),
                 child: _controller2 == 0
@@ -113,7 +117,7 @@ class _MainPageState extends State<MainPage>
           //#3
           NavigationDestination(
               icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1000),
+                duration: const Duration(milliseconds: 700),
                 transitionBuilder: (child, anim) => RotationTransition(
                   turns: Tween<double>(begin: 0.0, end: 2.0).animate(anim),
                   child: ScaleTransition(scale: anim, child: child),
@@ -162,6 +166,7 @@ class _MainPageState extends State<MainPage>
   void handleClick(String value) {
     switch (value) {
       case 'Perfil':
+        Navigator.of(context).pushNamed('/login');
         break;
       case 'Ajustes':
         break;

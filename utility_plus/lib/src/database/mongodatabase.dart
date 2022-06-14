@@ -4,12 +4,18 @@ import 'package:mongo_dart/mongo_dart.dart';
 import '../utils/global.dart';
 
 class MongoDatabase {
-  static var db, userCollection, noteCollection;
+  static var db,
+      userCollection,
+      noteCollection,
+      categoryCollection,
+      taskCollection;
 
   static connect() async {
-    db = await Db.create(MONGO_CONN_URL);
+    db = await Db.create(mongoConnUrl);
     await db.open();
-    userCollection = db.collection(USER_COLLECTION);
+    userCollection = db.collection('usuarios');
     noteCollection = db.collection("notes");
+    taskCollection = db.collection('tareas');
+    categoryCollection = db.collection('categorias');
   }
 }

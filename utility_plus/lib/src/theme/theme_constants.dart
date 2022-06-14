@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-const COLOR_PRIMARY = Colors.deepOrangeAccent;
-const COLOR_ACCENT = Colors.orange;
+const colorPrimary = Colors.deepOrangeAccent;
+const colorAccent = Colors.orange;
 
 ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    primaryColor: COLOR_PRIMARY,
+    primaryColor: colorPrimary,
     floatingActionButtonTheme:
-        const FloatingActionButtonThemeData(backgroundColor: COLOR_ACCENT),
+        const FloatingActionButtonThemeData(backgroundColor: colorAccent),
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
             padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
@@ -15,16 +15,21 @@ ThemeData lightTheme = ThemeData(
             shape: MaterialStateProperty.all<OutlinedBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0))),
-            backgroundColor: MaterialStateProperty.all<Color>(COLOR_ACCENT))),
+            backgroundColor: MaterialStateProperty.all<Color>(colorAccent))),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide.none),
     ),
-    appBarTheme: const AppBarTheme(backgroundColor: COLOR_ACCENT));
+    textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+    )),
+    appBarTheme: const AppBarTheme(backgroundColor: colorAccent));
 
 ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
+  // ignore: deprecated_member_use
   accentColor: Colors.white,
   switchTheme: SwitchThemeData(
     trackColor: MaterialStateProperty.all<Color>(Colors.grey),
@@ -44,4 +49,8 @@ ThemeData darkTheme = ThemeData(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
           foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
           overlayColor: MaterialStateProperty.all<Color>(Colors.black26))),
+  textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+  )),
 );
