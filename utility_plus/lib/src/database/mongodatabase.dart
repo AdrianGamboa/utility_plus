@@ -8,6 +8,7 @@ class MongoDatabase {
       userCollection,
       noteCollection,
       categoryCollection,
+      accountCollection,
       taskCollection;
 
   static connect() async {
@@ -17,5 +18,6 @@ class MongoDatabase {
     noteCollection = db.collection("notes");
     taskCollection = db.collection('tareas');
     categoryCollection = db.collection('categorias');
+    accountCollection = db.collection('cuentas');
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:utility_plus/src/screens/finance_page.dart';
 import 'package:utility_plus/src/services/AuthenticationServices.dart';
 import 'package:utility_plus/src/screens/note_page.dart';
 import 'package:utility_plus/src/screens/planning_page.dart';
@@ -17,6 +18,7 @@ class _MainPageState extends State<MainPage>
   //Pantallas de la barra de navegacion inferior
   NotePage notePage = const NotePage();
   PlanningPage planningPage = const PlanningPage();
+  FinancePage financePage = const FinancePage();
   //Controladores de animación
   int _controller1 = 1;
   int _controller2 = 0;
@@ -34,7 +36,7 @@ class _MainPageState extends State<MainPage>
     planningPage,
     notePage,
     const CircularProgressIndicator(),
-    const CircularProgressIndicator(),
+    financePage
   ];
 
   @override
