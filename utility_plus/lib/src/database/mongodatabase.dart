@@ -10,7 +10,8 @@ class MongoDatabase {
       categoryCollection,
       accountCollection,
       taskCollection,
-      transactionCollection;
+      transactionCollection,
+      transferCollection;
 
   static connect() async {
     db = await Db.create(mongoConnUrl);
@@ -21,5 +22,6 @@ class MongoDatabase {
     categoryCollection = db.collection('categorias');
     accountCollection = db.collection('cuentas');
     transactionCollection = db.collection('transacciones');
+    transferCollection = db.collection('transferencias');
   }
 }

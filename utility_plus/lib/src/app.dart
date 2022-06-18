@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/screens/about_page.dart';
 import 'package:utility_plus/src/screens/accounts_page.dart';
-import 'package:utility_plus/src/screens/finance_page.dart';
 import 'package:utility_plus/src/screens/login_page.dart';
 import 'package:utility_plus/src/screens/main_page.dart';
 import 'package:utility_plus/src/screens/register_page.dart';

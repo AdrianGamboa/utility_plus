@@ -287,7 +287,7 @@ class _NoteCreateState extends State<NoteCreate> {
         await NoteDB.insert(note);
         Navigator.of(context).pop();
       } catch (e) {
-        showAlertDialog(context, 'Error', 'Problema con el servidor');
+        showAlertDialog(context, 'Error', 'Problema con el servidor',1);
       }
     }
   }

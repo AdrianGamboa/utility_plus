@@ -2,7 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:utility_plus/src/utils/global.dart';
+import '../database/category_db.dart';
+import '../models/category.dart';
 import '../services/AuthenticationServices.dart';
+import 'package:mongo_dart/mongo_dart.dart' as m;
 String auxpass='';
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -350,13 +353,19 @@ class _RegisterPageState extends State<RegisterPage> {
   void createUser() async {
     showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(),),);
     dynamic result = await _auth.createNewUser(
-        nombre.trim(), primerApellido.trim(), segundoApellido.trim(), email.trim(), password.trim());
+        nombre.trim(), primerApellido.trim(), segundoApellido.trim(), email.trim(), password.trim(), context);
     if (result == null) {
       // ignore: avoid_print
+      
       print('Email is not valid');
+      
     } else {
       // ignore: avoid_print
       print(result.toString());
+      //Inserta las listas por defecto del usuario 
+      CategoryDB.insert(Category(id: m.ObjectId(), name: 'To do')); 
+      CategoryDB.insert(Category(id: m.ObjectId(), name: 'Importante')); 
+      CategoryDB.insert(Category(id: m.ObjectId(), name: 'Agenda'));
       // ignore: use_build_context_synchronously
        Navigator.of(context).popUntil((route) => route.isFirst);
       //Valida si el usuario esta logueado

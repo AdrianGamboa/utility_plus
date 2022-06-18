@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:utility_plus/src/database/account_db.dart';
 import 'package:utility_plus/src/database/transaction_db.dart';
 import 'package:utility_plus/src/models/account.dart';
-import 'package:utility_plus/src/screens/addAccount_page.dart';
+import 'package:utility_plus/src/screens/add_account_page.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 
 class AccountPage extends StatefulWidget {

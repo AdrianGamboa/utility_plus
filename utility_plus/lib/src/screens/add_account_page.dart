@@ -84,9 +84,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
           key: _formKey,
           child: Column(
             children: [
-              textForm('Nombre', 1, 18, nameTextController, false),
+              textForm('Nombre', 1, 18, nameTextController, false,true),
               const SizedBox(height: 20),
-              textForm('Monto', 1, null, amountTextController, true),
+              textForm('Monto', 1, null, amountTextController, true,false),
             ],
           )),
       const SizedBox(height: 30),
@@ -113,7 +113,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     ]);
   }
 
-  Widget textForm(name, lines, lenght, controller, numKeyboard) {
+  Widget textForm(name, lines, lenght, controller, numKeyboard, band) {
     return SizedBox(
         width: 320,
         child: TextFormField(
@@ -126,8 +126,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
             minLines: 1,
             controller: controller,
             validator: (value) {
-              if (nameTextController.text == '') return 'Ingrese un nombre';
-              if (amountTextController.text == '') return 'Ingrese un monto';
+              if(band==true){
+              if (nameTextController.text == '') return 'Ingrese un nombre';}else if(band==false){
+              if (amountTextController.text == '') return 'Ingrese un monto';}
               return null;
             },
             decoration: InputDecoration(

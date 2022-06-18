@@ -1,9 +1,13 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/database/account_db.dart';
 import 'package:utility_plus/src/database/transaction_db.dart';
 import 'package:utility_plus/src/models/transaction.dart';
 import 'package:utility_plus/src/screens/transaction_page.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
+
+import 'transfer_page.dart';
 
 class FinancePage extends StatefulWidget {
   const FinancePage({Key? key}) : super(key: key);
@@ -84,7 +88,13 @@ class _FinancePageState extends State<FinancePage> {
             child: const Text("Cuentas"),
           ),
           RaisedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => TransferPage(
+                      accountList: accountList)));
+            },
             child: const Text("Transferencias"),
           ),
         ],

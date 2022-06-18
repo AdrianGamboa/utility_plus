@@ -184,8 +184,7 @@ class TaskPageState extends State<TaskPage> {
 
   Row dateTimePicker() {
     return Row(children: [
-      SizedBox(
-          width: 210,
+      Expanded(
           child: TextFormField(
               readOnly: true,
               controller: reminderTextController,
@@ -217,8 +216,7 @@ class TaskPageState extends State<TaskPage> {
 
   Row datePicker() {
     return Row(children: [
-      SizedBox(
-          width: 210,
+      Expanded(
           child: TextFormField(
               readOnly: true,
               controller: dateTextController,

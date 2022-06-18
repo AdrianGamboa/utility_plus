@@ -404,7 +404,7 @@ class _NoteViewState extends State<NoteView> {
         await NoteDB.update(_mapNote(arg));
         Navigator.of(context).pop();
       } catch (e) {
-        showAlertDialog(context, 'Error', 'Problema con el servidor');
+        showAlertDialog(context, 'Error', 'Problema con el servidor',1);
       }
     }
   }
@@ -417,7 +417,7 @@ class _NoteViewState extends State<NoteView> {
       await NoteDB.delete(_mapNote(arg));
       Navigator.of(context).pop();
     } catch (e) {
-      showAlertDialog(context, 'Error', 'Problema con el servidor');
+      showAlertDialog(context, 'Error', 'Problema con el servidor',1);
     }
   }
 }
