@@ -37,39 +37,48 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancelar")),
-          TextButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  if (update) {
-                    updateAccount()
-                        .then((value) => Navigator.of(context).pop());
-                  } else {
-                    insertAccount();
-                    Navigator.of(context).pop();
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, false);
+        return true;
+      },
+      child: AlertDialog(
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text("Cancelar")),
+            TextButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    if (update) {
+                      updateAccount()
+                          .then((value) => Navigator.of(context).pop(true));
+                    } else {
+                      insertAccount();
+                      Navigator.of(context).pop(true);
+                    }
                   }
-                }
-              },
-              child: const Text("Guardar"))
-        ],
-        content: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Container(
-                padding: const EdgeInsets.all(10.0),
-                width: 380,
-                child: dialogContent())));
+                },
+                child: const Text("Guardar"))
+          ],
+          content: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Container(
+                  padding: const EdgeInsets.all(10.0),
+                  width: 380,
+                  child: dialogContent()))),
+    );
   }
 
   Widget dialogContent() {
     return Column(children: [
-      const Text("Agregar Cuenta",
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+      !update
+          ? const Text("Agregar cuenta",
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20))
+          : const Text("Modificar cuenta",
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
       const SizedBox(height: 20),
       Form(
           key: _formKey,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:utility_plus/src/database/account_db.dart';
+import 'package:utility_plus/src/database/transaction_db.dart';
 import 'package:utility_plus/src/models/account.dart';
 import 'package:utility_plus/src/screens/addAccount_page.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
@@ -13,54 +14,75 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   List accountList = [];
-
+  bool updateAccounts = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Cuentas',
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(context),
-        ),
-      ),
-      body: FutureBuilder(
-          future: AccountDB.getByUserId(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // Show loading indicator
-              return const Center(child: CircularProgressIndicator());
-            } else {
-              if (snapshot.hasError) {
-                // Return error
-                return const Center(child: Text('error'));
+    return WillPopScope(
+      onWillPop: () async {
+        if (updateAccounts) {
+          Navigator.pop(context, true);
+        } else {
+          Navigator.pop(context, false);
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Cuentas',
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (updateAccounts) {
+                Navigator.pop(context, true);
               } else {
-                accountList = snapshot.data as List;
-                if (accountList.isEmpty) {
-                  return const Center(child: Text('Nada por aquí'));
+                Navigator.pop(context, false);
+              }
+            },
+          ),
+        ),
+        body: FutureBuilder(
+            future: AccountDB.getByUserId(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Show loading indicator
+                return const Center(child: CircularProgressIndicator());
+              } else {
+                if (snapshot.hasError) {
+                  // Return error
+                  return const Center(child: Text('error'));
                 } else {
-                  return buildAccounts();
-                  // Return Listview with documents data
+                  accountList = snapshot.data as List;
+                  if (accountList.isEmpty) {
+                    return const Center(child: Text('Nada por aquí'));
+                  } else {
+                    return buildAccounts();
+                    // Return Listview with documents data
+                  }
                 }
               }
-            }
-          }),
-      floatingActionButton: SizedBox(
-        height: 50,
-        width: 50,
-        child: FloatingActionButton(
-          onPressed: () {
-            showDialog(
-                context: context,
-                builder: (BuildContext ctx) {
-                  return const AddAccountPage();
-                }).then((value) => setState(() {}));
-          },
-          child: const Text(
-            "+",
-            style: TextStyle(fontSize: 20),
+            }),
+        floatingActionButton: SizedBox(
+          height: 50,
+          width: 50,
+          child: FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext ctx) {
+                    return const AddAccountPage();
+                  }).then((value) {
+                if (value) {
+                  updateAccounts = true;
+                  setState(() {});
+                }
+              });
+            },
+            child: const Text(
+              "+",
+              style: TextStyle(fontSize: 20),
+            ),
           ),
         ),
       ),
@@ -86,7 +108,12 @@ class _AccountPageState extends State<AccountPage> {
               builder: (BuildContext ctx) {
                 return AddAccountPage(
                     accountInfo: convertToAccount(accountList[index]));
-              }).then((value) => setState(() {}));
+              }).then((value) {
+            if (value) {
+              updateAccounts = true;
+              setState(() {});
+            }
+          });
         },
         child: Row(children: [
           Icon(
@@ -130,12 +157,20 @@ class _AccountPageState extends State<AccountPage> {
 
   void popUpClick(String value, m.ObjectId account_) {
     if (value == 'Eliminar') {
-      delete(account_).then((value) => setState(() {}));
+      deleteAccount(account_);
+      deleteTransactions(account_).then((value) {
+        updateAccounts = true;
+        setState(() {});
+      });
     }
   }
 
-  Future delete(m.ObjectId account_) async {
+  Future deleteAccount(m.ObjectId account_) async {
     await AccountDB.delete(account_);
+  }
+
+  Future deleteTransactions(m.ObjectId account_) async {
+    await TransactionDB.deleteByAccountId(account_);
   }
 
   Account convertToAccount(account_) {
