@@ -5,6 +5,8 @@ import 'package:utility_plus/src/models/account.dart';
 import 'package:utility_plus/src/screens/add_account_page.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 
+import '../utils/alerts.dart';
+
 class AccountPage extends StatefulWidget {
   const AccountPage({Key? key}) : super(key: key);
 
@@ -51,7 +53,8 @@ class _AccountPageState extends State<AccountPage> {
               } else {
                 if (snapshot.hasError) {
                   // Return error
-                  return const Center(child: Text('error'));
+                  return const Center(
+                      child: Text('Error al extraer la información'));
                 } else {
                   accountList = snapshot.data as List;
                   if (accountList.isEmpty) {
@@ -157,20 +160,45 @@ class _AccountPageState extends State<AccountPage> {
 
   void popUpClick(String value, m.ObjectId account_) {
     if (value == 'Eliminar') {
-      deleteAccount(account_);
-      deleteTransactions(account_).then((value) {
-        updateAccounts = true;
-        setState(() {});
-      });
+      deleteAccount(account_).then((value) {
+        deleteTransactions(account_).then((value) {
+          updateAccounts = true;
+          setState(() {});
+        }).onError((error, stackTrace) => null);
+      }).onError((error, stackTrace) => null);
     }
   }
 
   Future deleteAccount(m.ObjectId account_) async {
-    await AccountDB.delete(account_);
+    try {
+      await AccountDB.delete(account_);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Future deleteTransactions(m.ObjectId account_) async {
-    await TransactionDB.deleteByAccountId(account_);
+    try {
+      await TransactionDB.deleteByAccountId(account_);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Account convertToAccount(account_) {

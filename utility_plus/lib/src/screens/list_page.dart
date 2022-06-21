@@ -4,6 +4,8 @@ import 'package:utility_plus/src/models/category.dart';
 import 'package:utility_plus/src/models/task.dart';
 import 'package:utility_plus/src/screens/task_page.dart';
 
+import '../utils/alerts.dart';
+
 late Future<List<Map<String, dynamic>>> _listTask;
 List<Task> _listTasks = [];
 
@@ -61,15 +63,26 @@ class ListPageState extends State<ListPage> {
   }
 
   getTasks() {
-    setState(() {
-      if (widget.category.name == 'Importante') {
-        _listTask = TaskDB.getByImportance();
-      } else if (widget.category.name == 'Agenda') {
-        _listTask = TaskDB.getByUserId();
+    try {
+      setState(() {
+        if (widget.category.name == 'Importante') {
+          _listTask = TaskDB.getByImportance();
+        } else if (widget.category.name == 'Agenda') {
+          _listTask = TaskDB.getByUserId();
+        } else {
+          _listTask = TaskDB.getByCategoryId(widget.category.id);
+        }
+      });
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
       } else {
-        _listTask = TaskDB.getByCategoryId(widget.category.id);
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
       }
-    });
+      setState(() {});
+    }
   }
 
   Widget taskCard(int pos) {
@@ -158,16 +171,41 @@ class ListPageState extends State<ListPage> {
       update(task_, widget.category);
     } else if (value == 'Eliminar') {
       _listTasks.removeWhere((item) => item.id == task_.id);
-      delete(task_).then((value) => getTasks());
+      delete(task_)
+          .then((value) => getTasks())
+          .onError((error, stackTrace) => null);
     }
   }
 
   Future update(task_, category_) async {
-    await TaskDB.update(task_);
+    try {
+      await TaskDB.update(task_);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+    }
   }
 
   Future delete(task_) async {
-    await TaskDB.delete(task_);
+    try {
+      await TaskDB.delete(task_);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 }
 

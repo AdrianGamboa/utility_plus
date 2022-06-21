@@ -6,6 +6,7 @@ import 'package:utility_plus/src/database/transaction_db.dart';
 import 'package:utility_plus/src/models/transaction.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 import 'package:utility_plus/src/utils/global.dart';
+import '../utils/alerts.dart';
 
 class TransactionPage extends StatefulWidget {
   const TransactionPage(
@@ -59,8 +60,9 @@ class _TransactionPageState extends State<TransactionPage> {
                     if (update) {
                       updateTransaction().then((value) {
                         updateAccount(value.accountId, value.amount)
-                            .then((value) => Navigator.of(context).pop(true));
-                      });
+                            .then((value) => Navigator.of(context).pop(true))
+                            .onError((error, stackTrace) => null);
+                      }).onError((error, stackTrace) => null);
                     } else {
                       if (widget.type == 'Expense') {
                         if (getAccountAmount() >
@@ -68,16 +70,18 @@ class _TransactionPageState extends State<TransactionPage> {
                           insertTransaction().then((value) {
                             updateAccount(value.accountId, value.amount * -1)
                                 .then(
-                                    (value) => Navigator.of(context).pop(true));
-                          });
+                                    (value) => Navigator.of(context).pop(true))
+                                .onError((error, stackTrace) => null);
+                          }).onError((error, stackTrace) => null);
                         } else {
                           noFundsDialog();
                         }
                       } else if (widget.type == 'Income') {
                         insertTransaction().then((value) {
                           updateAccount(value.accountId, value.amount)
-                              .then((value) => Navigator.of(context).pop(true));
-                        });
+                              .then((value) => Navigator.of(context).pop(true))
+                              .onError((error, stackTrace) => null);
+                        }).onError((error, stackTrace) => null);
                       }
                     }
                   }
@@ -108,7 +112,13 @@ class _TransactionPageState extends State<TransactionPage> {
           key: _formKey,
           child: Column(
             children: [
-              textForm('Título', 1, 18, titleTextController, false),
+              textForm(
+                'Título',
+                1,
+                18,
+                titleTextController,
+                false,
+              ),
               const SizedBox(height: 20),
               textForm(
                   'Descripción', 2, null, descriptionTextController, false),
@@ -135,25 +145,24 @@ class _TransactionPageState extends State<TransactionPage> {
             maxLines: lines,
             minLines: 1,
             controller: controller,
+            textInputAction: TextInputAction.next,
             validator: (value) {
               if (titleTextController.text == '') return 'Ingrese un nombre';
               if (amountTextController.text == '') return 'Ingrese un monto';
               return null;
             },
             decoration: InputDecoration(
-                counterText: "",
-                suffixIcon: IconButton(
-                    iconSize: 18,
-                    onPressed: () {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      controller.clear();
-                    },
-                    icon: const Icon(Icons.clear)),
-                labelText: name,
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)))));
+              counterText: "",
+              suffixIcon: IconButton(
+                  focusNode: FocusNode(skipTraversal: true),
+                  iconSize: 18,
+                  onPressed: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    controller.clear();
+                  },
+                  icon: const Icon(Icons.clear)),
+              labelText: name,
+            )));
   }
 
   dropDown() {
@@ -165,11 +174,7 @@ class _TransactionPageState extends State<TransactionPage> {
     }
 
     return DropdownButtonFormField(
-      decoration: const InputDecoration(
-          enabledBorder:
-              UnderlineInputBorder(borderSide: BorderSide(width: 1.0)),
-          focusedBorder:
-              UnderlineInputBorder(borderSide: BorderSide(width: 1.0))),
+      decoration: const InputDecoration(),
       isExpanded: true,
       validator: (value) {
         if (selectedValue == '') return 'Seleccione una cuenta';
@@ -195,15 +200,12 @@ class _TransactionPageState extends State<TransactionPage> {
           child: TextFormField(
               readOnly: true,
               controller: dateTextController,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                  labelText: widget.type == 'Expense'
-                      ? "Fecha del gasto"
-                      : "Fecha del ingreso",
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(width: 1.0))))),
+                labelText: widget.type == 'Expense'
+                    ? "Fecha del gasto"
+                    : "Fecha del ingreso",
+              ))),
       const SizedBox(width: 10),
       IconButton(
           splashColor: Colors.transparent,
@@ -258,43 +260,79 @@ class _TransactionPageState extends State<TransactionPage> {
   }
 
   Future<Transaction> insertTransaction() async {
-    Transaction transaction = Transaction(
-        id: m.ObjectId(),
-        title: titleTextController.text,
-        description: descriptionTextController.text,
-        amount: int.parse(amountTextController.text),
-        transactionDate: dateTextController.text,
-        type: widget.type,
-        accountId: m.ObjectId.parse(selectedValue!.substring(10, 34)),
-        uid: userFire!.uid.toString());
+    try {
+      Transaction transaction = Transaction(
+          id: m.ObjectId(),
+          title: titleTextController.text,
+          description: descriptionTextController.text,
+          amount: int.parse(amountTextController.text),
+          transactionDate: dateTextController.text,
+          type: widget.type,
+          accountId: m.ObjectId.parse(selectedValue!.substring(10, 34)),
+          uid: userFire!.uid.toString());
 
-    await TransactionDB.insert(transaction);
-    return transaction;
+      await TransactionDB.insert(transaction);
+      return transaction;
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Future<Transaction> updateTransaction() async {
-    Transaction transaction = Transaction(
-        id: widget.transactionInfo!.id,
-        title: titleTextController.text,
-        description: descriptionTextController.text,
-        amount: int.parse(amountTextController.text),
-        transactionDate: dateTextController.text,
-        type: widget.transactionInfo!.type,
-        accountId: m.ObjectId.parse(selectedValue!.substring(10, 34)),
-        uid: widget.transactionInfo!.uid);
+    try {
+      Transaction transaction = Transaction(
+          id: widget.transactionInfo!.id,
+          title: titleTextController.text,
+          description: descriptionTextController.text,
+          amount: int.parse(amountTextController.text),
+          transactionDate: dateTextController.text,
+          type: widget.transactionInfo!.type,
+          accountId: m.ObjectId.parse(selectedValue!.substring(10, 34)),
+          uid: widget.transactionInfo!.uid);
 
-    await TransactionDB.update(transaction);
-    return transaction;
+      await TransactionDB.update(transaction);
+      return transaction;
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Future updateAccount(m.ObjectId accountId, int amount) async {
-    if (update) {
-      amount = widget.type == 'Expense'
-          ? originalAmount - amount
-          : amount - originalAmount;
-      await AccountDB.updateAmount(accountId, amount);
-    } else {
-      await AccountDB.updateAmount(accountId, amount);
+    try {
+      if (update) {
+        amount = widget.type == 'Expense'
+            ? originalAmount - amount
+            : amount - originalAmount;
+        await AccountDB.updateAmount(accountId, amount);
+      } else {
+        await AccountDB.updateAmount(accountId, amount);
+      }
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
     }
   }
 

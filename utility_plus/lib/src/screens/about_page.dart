@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/global.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({
@@ -23,48 +24,57 @@ class AboutPageState extends State<AboutPage> {
           child: AppBar(
             title: const Text('Acerca de'),
           )),
-      body: Padding(
-        padding: const EdgeInsets.only(right: 20, left: 20),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 250,
-              child: Image.asset("assets/images/UtilityC.png"),
-            ),
-            const Text(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel efficitur dui. Curabitur eu metus nisl. Maecenas tempus, neque eu maximus pellentesque, mi sapien commodo neque, nec viverra quam enim eu nunc. Aenean lobortis sapien pretium dapibus fringilla. Sed vitae dui at tellus fermentum viverra at a sapien. Pellentesque bibendum tellus at massa rhoncus, at pharetra lorem rhoncus. Nulla porta dapibus purus quis commodo. ',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 16.0,
-                height: 1.5,
-              ),
-            ),
-            Container(
-                margin: const EdgeInsets.only(bottom: 20, top: 20),
-                alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: const TextSpan(
-                    text: 'Desarrolladores:\n',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 17.0,
-                      height: 1.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    children: <TextSpan>[
-                      TextSpan(
-                          text:
-                              'Adrian Gamboa Delgado - correo@gmail.com\nDaniel Gurreck Gonzalez - correo@gmail.com\nEsteban Vargas Ureña - correo@gmail.com',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 15.0,
-                            height: 1.8,
-                            fontWeight: FontWeight.normal,
-                          )),
-                    ],
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 20, left: 20, top: 40),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 150,
+                  child: themeManager.themeMode == ThemeMode.light
+                      ? Image.asset("assets/images/UtilityC.png")
+                      : Image.asset("assets/images/UtilityO.png"),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                const Text(
+                  '''
+El propósito de la aplicación es brindar una herramienta de control y gestión para la vida cotidiana. Con apartados para la gestión de finanzas, administración de tareas, recordatorios y notas rápidas.
+Esta aplicación fue desarrollada con fines académicos como parte del proyecto final del curso de programación en móviles de la Universidad Nacional de Costa Rica, para mejorar los conocimientos técnicos de los estudiantes involucrados.
+                  ''',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    height: 1.5,
                   ),
-                ))
-          ],
+                ),
+                Container(
+                    margin: const EdgeInsets.only(bottom: 20, top: 20),
+                    alignment: Alignment.centerLeft,
+                    child: RichText(
+                      text: const TextSpan(
+                        text: 'Desarrolladores:\n',
+                        style: TextStyle(
+                          fontSize: 17.0,
+                          height: 1.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text:
+                                  'Adrian Gamboa Delgado\nDaniel Gurreck Gonzalez\nEsteban Vargas Ureña',
+                              style: TextStyle(
+                                fontSize: 15.0,
+                                height: 1.8,
+                                fontWeight: FontWeight.normal,
+                              )),
+                        ],
+                      ),
+                    ))
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -4,6 +4,8 @@ import 'package:mongo_dart/mongo_dart.dart' as m;
 import 'package:utility_plus/src/models/category.dart';
 import 'package:utility_plus/src/screens/list_page.dart';
 
+import '../utils/alerts.dart';
+
 late Future<List<Map<String, dynamic>>> _listCategory;
 List<Category> listCategories = [];
 
@@ -30,15 +32,8 @@ class PlanningPageState extends State<PlanningPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-            margin: const EdgeInsets.only(bottom: 40),
-            padding: const EdgeInsets.all(20),
-            child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(children: [
-                  ReRunnableFutureBuilder(
-                      future_: _listCategory, refreshCategories: getCategories)
-                ]))),
+        body: ReRunnableFutureBuilder(
+            future_: _listCategory, refreshCategories: getCategories),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.miniStartFloat,
         floatingActionButton: Padding(
@@ -73,7 +68,7 @@ class PlanningPageState extends State<PlanningPage> {
                           Navigator.of(context).pop();
                           newListTextController.clear();
                         }
-                      });
+                      }).onError((error, stackTrace) => null);
                     },
                     child: const Text("Agregar lista"))
               ],
@@ -103,38 +98,49 @@ class PlanningPageState extends State<PlanningPage> {
           controller: newListTextController,
           keyboardType: TextInputType.emailAddress,
           decoration: const InputDecoration(
-              labelText: "Nombre de la lista",
-              enabledBorder:
-                  UnderlineInputBorder(borderSide: BorderSide(width: 1.0)),
-              focusedBorder:
-                  UnderlineInputBorder(borderSide: BorderSide(width: 1.0)))),
+            labelText: "Nombre de la lista",
+          )),
     );
   }
 
   Future insertCategory() async {
-    if (await CategoryDB.getByName(newListTextController.text) == null) {
-      await CategoryDB.insert(
-          Category(id: m.ObjectId(), name: newListTextController.text));
-      return true;
-    } else {
-      return false;
+    try {
+      if (await CategoryDB.getByName(newListTextController.text) == null) {
+        await CategoryDB.insert(
+            Category(id: m.ObjectId(), name: newListTextController.text));
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
     }
   }
 
   getCategories() async {
-    setState(() {
-      _listCategory = CategoryDB.getByUserId();
-    });
+    try {
+      setState(() {
+        _listCategory = CategoryDB.getByUserId();
+      });
 
-    //Convert the Future<List> of categories to a normal category list
-    listCategories.clear();
-    List categories = await _listCategory;
-    for (var item in categories) {
-      if (Category.fromMap(item).name != 'Agenda' &&
-          Category.fromMap(item).name != 'Importante') {
-        listCategories.add(Category.fromMap(item));
+      //Convert the Future<List> of categories to a normal category list
+      listCategories.clear();
+      List categories = await _listCategory;
+      for (var item in categories) {
+        if (Category.fromMap(item).name != 'Agenda' &&
+            Category.fromMap(item).name != 'Importante') {
+          listCategories.add(Category.fromMap(item));
+        }
       }
-    }
+    } catch (e) {}
   }
 }
 
@@ -152,18 +158,24 @@ class ReRunnableFutureBuilder extends StatelessWidget {
         future: future_,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(
-                child: Padding(
-                    padding: EdgeInsets.only(top: 20),
-                    child: CircularProgressIndicator()));
+            return LinearProgressIndicator(
+              color: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).secondaryHeaderColor,
+            );
           }
           if (snapshot.hasError) {
-            return const Center(
-                child: Padding(
-                    padding: EdgeInsets.only(top: 20),
-                    child: Text("Error al extraer la información")));
+            return const Center(child: Text("Error al extraer la información"));
           } else {
-            return Column(children: categoryList(snapshot.data));
+            return Container(
+              margin: const EdgeInsets.only(bottom: 60),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(children: categoryList(snapshot.data)),
+                ),
+              ),
+            );
           }
         });
   }
@@ -203,7 +215,7 @@ bool isMainList(Category category) {
   return false;
 }
 
-class ListCard extends StatelessWidget {
+class ListCard extends StatefulWidget {
   final Category category_;
   final IconData icon_;
   final Function() refreshCategories;
@@ -216,6 +228,11 @@ class ListCard extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<ListCard> createState() => _ListCardState();
+}
+
+class _ListCardState extends State<ListCard> {
+  @override
   Widget build(BuildContext context) {
     return TextButton(
         onPressed: () {
@@ -223,17 +240,18 @@ class ListCard extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (context) => ListPage(
-                      category: category_, listCategory: listCategories)));
+                      category: widget.category_,
+                      listCategory: listCategories)));
         },
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          Icon(icon_),
+          Icon(widget.icon_),
           const SizedBox(width: 10),
-          Text(category_.name,
+          Text(widget.category_.name,
               style: const TextStyle(
                 fontSize: 16.0,
               )),
           const Spacer(),
-          isMainList(category_)
+          isMainList(widget.category_)
               ? const SizedBox()
               : SizedBox(
                   height: 30,
@@ -242,7 +260,9 @@ class ListCard extends StatelessWidget {
                       splashRadius: 24,
                       padding: EdgeInsets.zero,
                       icon: const Icon(Icons.more_vert),
-                      onSelected: popUpClick,
+                      onSelected: (value) {
+                        popUpClick(value, context);
+                      },
                       itemBuilder: (BuildContext context) {
                         return {'Eliminar'}.map((String choice) {
                           return PopupMenuItem<String>(
@@ -255,11 +275,23 @@ class ListCard extends StatelessWidget {
         ]));
   }
 
-  void popUpClick(String value) {
+  Future<void> popUpClick(String value, context) async {
     switch (value) {
       case 'Eliminar':
-        CategoryDB.delete(category_);
-        refreshCategories();
+        try {
+          await CategoryDB.delete(widget.category_);
+          widget.refreshCategories();
+        } catch (e) {
+          if (e == ("Internet error")) {
+            showAlertDialog(context, 'Problema de conexión',
+                'Comprueba si existe conexión a internet e inténtalo más tarde.');
+          } else {
+            showAlertDialog(context, 'Problema con el servidor',
+                'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+          }
+          setState(() {});
+        }
+
         break;
     }
   }

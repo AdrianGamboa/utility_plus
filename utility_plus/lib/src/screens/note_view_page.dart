@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:utility_plus/src/database/note_db.dart';
 import 'package:utility_plus/src/models/note.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
+import 'package:utility_plus/src/utils/connection.dart';
 import 'package:utility_plus/src/utils/view_image_handler.dart';
 
 import '../utils/alerts.dart';
@@ -30,6 +31,7 @@ class _NoteViewState extends State<NoteView> {
   final _titleField = TextEditingController();
   final _contentField = TextEditingController();
   bool _pinButton = false;
+  bool _loadindicador = false;
 
   @override
   void initState() {
@@ -39,155 +41,191 @@ class _NoteViewState extends State<NoteView> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: _shadeColor,
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          backgroundColor: _mainColor,
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(
-                Icons.delete_outline,
-                color: Colors.white,
-              ),
-              onPressed: () => _showConfirmDialog(context),
+    return WillPopScope(
+      onWillPop: () async => !_loadindicador,
+      child: IgnorePointer(
+        ignoring: _loadindicador,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: _shadeColor,
+            resizeToAvoidBottomInset: false,
+            appBar: AppBar(
+              backgroundColor: _mainColor,
+              actions: <Widget>[
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => _showConfirmDialog(context),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.color_lens_outlined,
+                    color: Colors.white,
+                  ),
+                  onPressed: _openColorPicker,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.push_pin_outlined,
+                    color: _pinButton == true ? Colors.white : Colors.white30,
+                  ),
+                  onPressed: () {
+                    // do something
+                    if (_pinButton) {
+                      _pinButton = false;
+                    } else {
+                      _pinButton = true;
+                    }
+                    setState(() {});
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.check,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    // do something
+                    _updateNote(widget.recordNote);
+                  },
+                )
+              ],
             ),
-            IconButton(
-              icon: const Icon(
-                Icons.color_lens_outlined,
-                color: Colors.white,
-              ),
-              onPressed: _openColorPicker,
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.push_pin_outlined,
-                color: _pinButton == true ? Colors.white : Colors.white30,
-              ),
-              onPressed: () {
-                // do something
-                if (_pinButton) {
-                  _pinButton = false;
-                } else {
-                  _pinButton = true;
-                }
-                setState(() {});
-              },
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.check,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                // do something
-                _updateNote(widget.recordNote);
-              },
-            )
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _titleField,
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Título',
-                    hintStyle: TextStyle(color: Colors.black38)),
-                style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold),
-              ),
-              const Divider(
-                thickness: 1,
-              ),
-              Expanded(
-                child: TextField(
-                    controller: _contentField,
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  _loadindicador
+                      ? LinearProgressIndicator(
+                          color: _mainColor, backgroundColor: _shadeColor)
+                      : Container(
+                          height: 4,
+                        ),
+                  TextField(
+                    controller: _titleField,
                     decoration: const InputDecoration(
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.transparent,
+                            width: 1.0,
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.transparent,
+                          ),
+                        ),
                         border: InputBorder.none,
-                        hintText: 'Contenido',
+                        hintText: 'Título',
                         hintStyle: TextStyle(color: Colors.black38)),
                     style: const TextStyle(
-                      color: Colors.black54,
-                    ),
-                    expands: true,
-                    minLines: null,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline),
-              ),
-              const Divider(
-                thickness: 1,
-              ),
-              Container(
-                  child: _imageFile == null && _imageSaved == null
-                      ? Container()
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                    maxHeight: 200, maxWidth: 330),
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: ImageFullScreenWrapperWidget(
-                                      dark: true,
-                                      child: _imageSaved == null
-                                          ? Image.file(_imageFile!)
-                                          : _imageSaved!,
-                                    ))),
-                            Container(
-                              width: 40,
-                              decoration: BoxDecoration(
-                                  color: _mainColor,
-                                  borderRadius: const BorderRadius.only(
-                                      bottomRight: Radius.circular(15),
-                                      topRight: Radius.circular(15))),
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white70,
-                                ),
-                                onPressed: () {
-                                  // do something
-                                  _imageFile = null;
-                                  _imageSaved = null;
-                                  setState(() {});
-                                },
+                        color: Colors.black87,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Divider(
+                    color: _mainColor,
+                    thickness: 1,
+                  ),
+                  Expanded(
+                    child: TextField(
+                        controller: _contentField,
+                        decoration: const InputDecoration(
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.transparent,
+                                width: 1.0,
                               ),
                             ),
-                          ],
-                        )),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.photo_size_select_actual_outlined,
-                      color: Colors.black,
-                    ),
-                    onPressed: () {
-                      // do something
-                      _getFromGallery();
-                    },
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.transparent,
+                              ),
+                            ),
+                            border: InputBorder.none,
+                            hintText: 'Contenido',
+                            hintStyle: TextStyle(color: Colors.black38)),
+                        style: const TextStyle(
+                          color: Colors.black54,
+                        ),
+                        expands: true,
+                        minLines: null,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.black,
-                    ),
-                    onPressed: () {
-                      // do something
-                      _getFromCamera();
-                    },
+                  Divider(
+                    color: _mainColor,
+                    thickness: 1,
+                  ),
+                  Container(
+                      child: _imageFile == null && _imageSaved == null
+                          ? Container()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                        maxHeight: 200, maxWidth: 330),
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: ImageFullScreenWrapperWidget(
+                                          dark: true,
+                                          child: _imageSaved == null
+                                              ? Image.file(_imageFile!)
+                                              : _imageSaved!,
+                                        ))),
+                                Container(
+                                  width: 40,
+                                  decoration: BoxDecoration(
+                                      color: _mainColor,
+                                      borderRadius: const BorderRadius.only(
+                                          bottomRight: Radius.circular(15),
+                                          topRight: Radius.circular(15))),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.white70,
+                                    ),
+                                    onPressed: () {
+                                      // do something
+                                      _imageFile = null;
+                                      _imageSaved = null;
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
+                              ],
+                            )),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.photo_size_select_actual_outlined,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          // do something
+                          _getFromGallery();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.camera_alt_outlined,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          // do something
+                          _getFromCamera();
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -253,8 +291,8 @@ class _NoteViewState extends State<NoteView> {
     );
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("Confirmación"),
-      content: Text("Seguro que desea eliminar la Nota."),
+      title: const Text("Confirmación"),
+      content: const Text("Seguro que desea eliminar la Nota."),
       actions: [
         cancelButton,
         continueButton,
@@ -302,47 +340,37 @@ class _NoteViewState extends State<NoteView> {
   Future<String?> _uploadToFirebase(String pathName) async {
     if (_imageFile != null) {
       try {
-        // Upload file to the path 'images/pathName'
-        final uploadTask =
-            FirebaseStorage.instance.ref().child('images/$pathName');
+        if (await hasNetwork()) {
+          // Upload file and metadata to the path 'images/mountains.jpg'
+          final uploadTask =
+              FirebaseStorage.instance.ref().child('images/$pathName');
 
-        await uploadTask.putFile(_imageFile!);
-        String url = await uploadTask.getDownloadURL();
-        return url;
+          await uploadTask.putFile(_imageFile!);
+          String url = await uploadTask.getDownloadURL();
+          return url;
+        } else {
+          throw ('Internet error');
+        }
       } catch (e) {
-        return null;
+        return Future.error(e);
       }
     }
     return null;
   }
 
-  _updateToFirebase(String pathName) async {
-    if (_imageFile != null) {
-      try {
-        // Update file to the path'
-        final updateTask =
+  Future _deleteFromFirebase(String pathName) async {
+    try {
+      if (await hasNetwork()) {
+        // delete file from the path'
+        final deleteTask =
             FirebaseStorage.instance.ref().child('images/$pathName');
 
-        await updateTask.writeToFile(_imageFile!);
-
-        return 'success';
-      } catch (e) {
-        return 'error';
+        await deleteTask.delete();
+      } else {
+        throw ('Internet error');
       }
-    }
-  }
-
-  _deleteFromFirebase(String pathName) async {
-    try {
-      // delete file from the path'
-      final deleteTask =
-          FirebaseStorage.instance.ref().child('images/$pathName');
-
-      await deleteTask.delete();
-
-      return 'success';
     } catch (e) {
-      return 'error';
+      return Future.error(e);
     }
   }
 
@@ -353,7 +381,21 @@ class _NoteViewState extends State<NoteView> {
     _shadeColor = Color(arg['shadeColor']);
     _mainColor = Color(arg['mainColor']);
     if (arg['image'] != null) {
-      _imageSaved = Image.network(arg['image']);
+      _imageSaved = Image.network(
+        arg['image'],
+        loadingBuilder: (BuildContext context, Widget child,
+            ImageChunkEvent? loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -375,16 +417,32 @@ class _NoteViewState extends State<NoteView> {
         _contentField.text.isEmpty &&
         _imageFile == null &&
         _imageSaved == null) {
-      if (arg['image'] == null) {
-        await NoteDB.delete(_mapNote(arg));
-      } else {
-        _deleteFromFirebase(arg['_id'].$oid);
-        await NoteDB.delete(_mapNote(arg));
+      try {
+        _loadindicador = true;
+        setState(() {});
+        if (arg['image'] == null) {
+          await NoteDB.delete(_mapNote(arg));
+        } else {
+          await _deleteFromFirebase(arg['_id'].$oid);
+          await NoteDB.delete(_mapNote(arg));
+        }
+      } catch (e) {
+        _loadindicador = false;
+        if (e == ("Internet error")) {
+          showAlertDialog(context, 'Problema de conexión',
+              'Comprueba si existe conexión a internet e inténtalo más tarde.');
+        } else {
+          showAlertDialog(context, 'Problema con el servidor',
+              'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+        }
+        setState(() {});
       }
 
       Navigator.of(context).pop();
     } else {
       try {
+        _loadindicador = true;
+        setState(() {});
         if (_imageSaved == null) {
           if (_imageFile == null && arg['image'] == null) {
             //Note without image
@@ -393,10 +451,11 @@ class _NoteViewState extends State<NoteView> {
             arg['image'] = await _uploadToFirebase(arg['_id'].$oid);
           } else if (_imageFile != null && arg['image'] != null) {
             //Replace the existing image with a new one
-            _updateToFirebase(arg['_id'].$oid);
+            await _deleteFromFirebase(arg['_id'].$oid);
+            arg['image'] = await _uploadToFirebase(arg['_id'].$oid);
           } else {
             //Delete the current image of the note
-            _deleteFromFirebase(arg['_id'].$oid);
+            await _deleteFromFirebase(arg['_id'].$oid);
             arg['image'] = null;
           }
         }
@@ -404,20 +463,38 @@ class _NoteViewState extends State<NoteView> {
         await NoteDB.update(_mapNote(arg));
         Navigator.of(context).pop();
       } catch (e) {
-        showAlertDialog(context, 'Error', 'Problema con el servidor',1);
+        _loadindicador = false;
+        if (e == ("Internet error")) {
+          showAlertDialog(context, 'Problema de conexión',
+              'Comprueba si existe conexión a internet e inténtalo más tarde.');
+        } else {
+          showAlertDialog(context, 'Problema con el servidor',
+              'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+        }
+        setState(() {});
       }
     }
   }
 
   _deleteNote(var arg) async {
     try {
+      _loadindicador = true;
+      setState(() {});
       if (arg['image'] != null) {
-        _deleteFromFirebase(arg['_id'].$oid);
+        await _deleteFromFirebase(arg['_id'].$oid);
       }
       await NoteDB.delete(_mapNote(arg));
       Navigator.of(context).pop();
     } catch (e) {
-      showAlertDialog(context, 'Error', 'Problema con el servidor',1);
+      _loadindicador = false;
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
     }
   }
 }

@@ -4,6 +4,8 @@ import 'package:utility_plus/src/models/category.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 import 'package:utility_plus/src/models/task.dart';
 
+import '../utils/alerts.dart';
+
 class TaskPage extends StatefulWidget {
   const TaskPage({
     Key? key,
@@ -61,13 +63,18 @@ class TaskPageState extends State<TaskPage> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   if (update) {
-                    updateTask().then((value) => widget.refreshTasks());
+                    updateTask().then((value) {
+                      widget.refreshTasks();
+                      clearTxt();
+                      Navigator.of(context).pop();
+                    }).onError((error, stackTrace) => null);
                   } else {
-                    insertTask().then((value) => widget.refreshTasks());
+                    insertTask().then((value) {
+                      widget.refreshTasks();
+                      clearTxt();
+                      Navigator.of(context).pop();
+                    }).onError((error, stackTrace) => null);
                   }
-
-                  clearTxt();
-                  Navigator.of(context).pop();
                 }
               },
               child: const Text("Guardar"))
@@ -99,28 +106,52 @@ class TaskPageState extends State<TaskPage> {
   }
 
   Future insertTask() async {
-    final task = Task(
-        id: m.ObjectId(),
-        title: titleTextController.text,
-        content: contentTextController.text,
-        expirationDate: dateTextController.text,
-        reminderDate: reminderTextController.text,
-        important: categoryChoosed.name == 'Importante' ? true : false,
-        categoryId: categoryChoosed.id);
-    await TaskDB.insert(task);
+    try {
+      final task = Task(
+          id: m.ObjectId(),
+          title: titleTextController.text,
+          content: contentTextController.text,
+          expirationDate: dateTextController.text,
+          reminderDate: reminderTextController.text,
+          important: categoryChoosed.name == 'Importante' ? true : false,
+          categoryId: categoryChoosed.id);
+      await TaskDB.insert(task);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Future updateTask() async {
-    final task = Task(
-        id: widget.taskInfo!.id,
-        title: titleTextController.text,
-        content: contentTextController.text,
-        expirationDate: dateTextController.text,
-        reminderDate: reminderTextController.text,
-        important: widget.taskInfo!.important,
-        finished: widget.taskInfo!.finished,
-        categoryId: categoryChoosed.id);
-    await TaskDB.update(task);
+    try {
+      final task = Task(
+          id: widget.taskInfo!.id,
+          title: titleTextController.text,
+          content: contentTextController.text,
+          expirationDate: dateTextController.text,
+          reminderDate: reminderTextController.text,
+          important: widget.taskInfo!.important,
+          finished: widget.taskInfo!.finished,
+          categoryId: categoryChoosed.id);
+      await TaskDB.update(task);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   initTaskInfo() {
@@ -157,15 +188,10 @@ class TaskPageState extends State<TaskPage> {
   //WIDGETS
   Row category() {
     return Row(children: [
-      const Text("Categoria", style: TextStyle(fontSize: 18)),
+      const Text("Categoría", style: TextStyle(fontSize: 18)),
       const SizedBox(width: 20),
       Expanded(
           child: DropdownButtonFormField<Category>(
-              decoration: const InputDecoration(
-                  enabledBorder:
-                      UnderlineInputBorder(borderSide: BorderSide(width: 1.0)),
-                  focusedBorder:
-                      UnderlineInputBorder(borderSide: BorderSide(width: 1.0))),
               hint: Text(categoryChoosed.name),
               isExpanded: true,
               onChanged: (newValue) {
@@ -188,19 +214,17 @@ class TaskPageState extends State<TaskPage> {
           child: TextFormField(
               readOnly: true,
               controller: reminderTextController,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                      iconSize: 18,
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        reminderTextController.clear();
-                      },
-                      icon: const Icon(Icons.clear)),
-                  labelText: 'Recordatorio',
-                  enabledBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(width: 1.0)),
-                  focusedBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(width: 1.0))))),
+                suffixIcon: IconButton(
+                    iconSize: 18,
+                    onPressed: () {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      reminderTextController.clear();
+                    },
+                    icon: const Icon(Icons.clear)),
+                labelText: 'Recordatorio',
+              ))),
       const SizedBox(width: 10),
       IconButton(
           splashColor: Colors.transparent,
@@ -220,20 +244,17 @@ class TaskPageState extends State<TaskPage> {
           child: TextFormField(
               readOnly: true,
               controller: dateTextController,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                      iconSize: 18,
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        dateTextController.clear();
-                      },
-                      icon: const Icon(Icons.clear)),
-                  labelText: 'Fecha de vencimiento',
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(width: 1.0))))),
+                suffixIcon: IconButton(
+                    iconSize: 18,
+                    onPressed: () {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      dateTextController.clear();
+                    },
+                    icon: const Icon(Icons.clear)),
+                labelText: 'Fecha de vencimiento',
+              ))),
       const SizedBox(width: 10),
       IconButton(
           splashColor: Colors.transparent,
@@ -256,24 +277,23 @@ class TaskPageState extends State<TaskPage> {
             maxLines: lines,
             minLines: 1,
             controller: controller,
+            textInputAction: TextInputAction.next,
             validator: (value) {
               if (titleTextController.text == '') return 'Ingrese un título';
               return null;
             },
             decoration: InputDecoration(
-                counterText: "",
-                suffixIcon: IconButton(
-                    iconSize: 18,
-                    onPressed: () {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      controller.clear();
-                    },
-                    icon: const Icon(Icons.clear)),
-                labelText: name,
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)))));
+              counterText: "",
+              suffixIcon: IconButton(
+                  focusNode: FocusNode(skipTraversal: true),
+                  iconSize: 18,
+                  onPressed: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    controller.clear();
+                  },
+                  icon: const Icon(Icons.clear)),
+              labelText: name,
+            )));
   }
 
   //SHOW DATE/HOUR PICKERS

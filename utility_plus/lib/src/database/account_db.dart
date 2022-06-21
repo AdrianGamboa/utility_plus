@@ -3,44 +3,81 @@ import 'package:utility_plus/src/database/mongodatabase.dart';
 import 'package:utility_plus/src/models/account.dart';
 import 'package:utility_plus/src/utils/global.dart';
 
+import '../utils/connection.dart';
+
 class AccountDB {
   static Future<List<Map<String, dynamic>>> getByUserId() async {
     try {
-      final accounts = await MongoDatabase.accountCollection
-          .find(where.eq("uid", userFire!.uid.toString()).sortBy("amount"))
-          .toList();
-      return accounts;
+      if (await hasNetwork()) {
+        final accounts = await MongoDatabase.accountCollection
+            .find(where.eq("uid", userFire!.uid.toString()).sortBy("amount"))
+            .toList();
+        return accounts;
+      } else {
+        throw ('Internet error');
+      }
     } catch (e) {
-      dynamic d;
-      print(e);
-      d = e;
-      return Future.value(d);
+      return Future<List<Map<String, dynamic>>>.error(e);
     }
   }
 
   static insert(Account account) async {
-    await MongoDatabase.accountCollection.insertAll([account.toMap()]);
+    try {
+      if (await hasNetwork()) {
+        await MongoDatabase.accountCollection.insertAll([account.toMap()]);
+      } else {
+        throw ('Internet error');
+      }
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
   static delete(ObjectId account) async {
-    await MongoDatabase.accountCollection.remove(where.id(account));
+    try {
+      if (await hasNetwork()) {
+        await MongoDatabase.accountCollection.remove(where.id(account));
+      } else {
+        throw ('Internet error');
+      }
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
   static update(Account account) async {
-    var a = await MongoDatabase.accountCollection.findOne({"_id": account.id});
-    a["name"] = account.name;
-    a["amount"] = account.amount;
-    a["icon"] = account.icon;
-    a["color"] = account.color;
+    try {
+      if (await hasNetwork()) {
+        var a =
+            await MongoDatabase.accountCollection.findOne({"_id": account.id});
+        a["name"] = account.name;
+        a["amount"] = account.amount;
+        a["icon"] = account.icon;
+        a["color"] = account.color;
 
-    await MongoDatabase.accountCollection.save(a);
+        await MongoDatabase.accountCollection.save(a);
+      } else {
+        throw ('Internet error');
+      }
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
   static updateAmount(ObjectId accountId, int amount_) async {
-    var a = await MongoDatabase.accountCollection.findOne({"_id": accountId});
+    try {
+      if (await hasNetwork()) {
+        var a =
+            await MongoDatabase.accountCollection.findOne({"_id": accountId});
 
-    a["amount"] = a["amount"] + amount_;
+        a["amount"] = a["amount"] + amount_;
 
-    await MongoDatabase.accountCollection.save(a);
+        await MongoDatabase.accountCollection.save(a);
+      } else {
+        throw ('Internet error');
+      }
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 }

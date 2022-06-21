@@ -29,11 +29,15 @@ class NotePageState extends State<NotePage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Show loading indicator
-              return const Center(child: CircularProgressIndicator());
+              return LinearProgressIndicator(
+                color: Theme.of(context).primaryColor,
+                backgroundColor: Theme.of(context).secondaryHeaderColor,
+              );
             } else {
               if (snapshot.hasError) {
                 // Return error
-                return const Center(child: Text('error'));
+                return const Center(
+                    child: Text('Error al extraer la información'));
               } else {
                 notesList = snapshot.data as List;
                 if (notesList.isEmpty) {
@@ -114,7 +118,7 @@ class NotePageState extends State<NotePage> {
                         child: Text(
                           DateFormat.yMMMd()
                               .add_jm()
-                              .format(notesList[index]['lastDate']),
+                              .format(notesList[index]['lastDate'].toLocal()),
                           style: const TextStyle(
                             color: Colors.white70,
                           ),

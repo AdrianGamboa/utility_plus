@@ -7,6 +7,7 @@ import 'package:utility_plus/src/models/transaction.dart';
 import 'package:utility_plus/src/screens/transaction_page.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 
+import '../utils/alerts.dart';
 import 'transfer_page.dart';
 
 class FinancePage extends StatefulWidget {
@@ -38,35 +39,49 @@ class _FinancePageState extends State<FinancePage> {
       length: 2,
       child: Scaffold(
         appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(160.0),
+            preferredSize: const Size.fromHeight(100.0),
             child: AppBar(
-                flexibleSpace: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.monetization_on, size: 35),
-                        const SizedBox(width: 10),
-                        selectedValue != ''
-                            ? buildAccounts()
-                            : const CircularProgressIndicator()
-                      ],
-                    ),
-                    Container(
-                        margin: const EdgeInsets.only(top: 14.0),
-                        child: selectedValue != null
-                            ? Text(amount,
-                                style: const TextStyle(
-                                    fontSize: 26, fontWeight: FontWeight.w700))
-                            : const Text('₡ 0')),
-                    const SizedBox(height: 30)
-                  ],
+                flexibleSpace: Padding(
+                  padding: const EdgeInsets.only(left: 20.0, right: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.monetization_on,
+                              size: 35, color: Colors.white),
+                          const SizedBox(width: 10),
+                          selectedValue != ''
+                              ? buildAccounts()
+                              : const CircularProgressIndicator()
+                        ],
+                      ),
+                      const Spacer(),
+                      Container(
+                          // margin: const EdgeInsets.only(top: 14.0),
+                          child: selectedValue != null
+                              ? Text(
+                                  amount.length > 10
+                                      ? '${amount.substring(0, 12)}...'
+                                      : amount,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 34 - amount.length.toDouble(),
+                                      fontWeight: FontWeight.w700))
+                              : const Text(
+                                  '₡ 0',
+                                )),
+                      const SizedBox(height: 30)
+                    ],
+                  ),
                 ),
                 bottom: const TabBar(
+                    labelColor: Colors.white,
                     indicatorColor: Color(0xffAD53AE),
-                    unselectedLabelColor: Color(0xff707070),
+                    unselectedLabelColor: Colors.white54,
                     tabs: [
                       Tab(child: Text('Gastos')),
                       Tab(child: Text('Ingresos'))
@@ -90,10 +105,10 @@ class _FinancePageState extends State<FinancePage> {
           RaisedButton(
             onPressed: () {
               Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TransferPage(
-                      accountList: accountList)));
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          TransferPage(accountList: accountList)));
             },
             child: const Text("Transferencias"),
           ),
@@ -116,7 +131,8 @@ class _FinancePageState extends State<FinancePage> {
             } else {
               if (snapshot.hasError) {
                 // Return error
-                return const Center(child: Text('Error'));
+                return const Center(
+                    child: Text('Error al extraer la información'));
               } else {
                 transactionList = snapshot.data as List;
                 if (transactionList.isEmpty) {
@@ -245,7 +261,19 @@ class _FinancePageState extends State<FinancePage> {
   }
 
   Future delete(m.ObjectId transaction_) async {
-    await TransactionDB.delete(transaction_);
+    try {
+      await TransactionDB.delete(transaction_);
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   getAmount() {
@@ -279,8 +307,24 @@ class _FinancePageState extends State<FinancePage> {
     }
 
     return DropdownButton(
+      borderRadius: const BorderRadius.all(Radius.circular(15)),
+      iconEnabledColor: Colors.white,
       value: selectedValue,
       items: itemList,
+      selectedItemBuilder: (BuildContext ctxt) {
+        return itemList.map<Widget>((item) {
+          return DropdownMenuItem(
+              value: item.value,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 100),
+                child: Text(
+                    item.child
+                        .toString()
+                        .substring(6, item.child.toString().length - 2),
+                    style: const TextStyle(color: Colors.white)),
+              ));
+        }).toList();
+      },
       onChanged: (String? value) {
         setState(() {
           selectedValue = value!;
@@ -291,9 +335,11 @@ class _FinancePageState extends State<FinancePage> {
   }
 
   getAccounts() async {
-    _listAccounts = AccountDB.getByUserId();
-    accountList = await _listAccounts;
+    try {
+      _listAccounts = AccountDB.getByUserId();
+      accountList = await _listAccounts;
 
-    getAmount();
+      getAmount();
+    } catch (e) {}
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:utility_plus/src/screens/about_page.dart';
 import 'package:utility_plus/src/screens/accounts_page.dart';
 import 'package:utility_plus/src/screens/login_page.dart';
@@ -26,25 +27,39 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
+    initStorage();
     themeManager.addListener(() {
       themeListener();
     });
     super.initState();
   }
 
+  initStorage() {
+    if (GetStorage().read('theme') == null) {
+      GetStorage().write('theme', 'auto');
+    }
+  }
+
   themeListener() {
+    takeTheme();
     if (mounted) {
       setState(() {});
     }
   }
 
   takeTheme() {
-    var hora = DateTime.now().hour;
+    if (GetStorage().read('theme') == 'auto') {
+      var hora = DateTime.now().hour;
 
-    if (hora >= 6 && hora < 18) {
-      themeManager.themeModee = ThemeMode.light;
-    } else {
+      if (hora >= 6 && hora < 18) {
+        themeManager.themeModee = ThemeMode.light;
+      } else {
+        themeManager.themeModee = ThemeMode.dark;
+      }
+    } else if (GetStorage().read('theme') == 'dark') {
       themeManager.themeModee = ThemeMode.dark;
+    } else {
+      themeManager.themeModee = ThemeMode.light;
     }
   }
 

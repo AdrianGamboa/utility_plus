@@ -6,6 +6,8 @@ import 'package:utility_plus/src/models/account.dart';
 import 'package:mongo_dart/mongo_dart.dart' as m;
 import 'package:utility_plus/src/utils/global.dart';
 
+import '../utils/alerts.dart';
+
 IconData iconChoosed = Icons.monetization_on;
 
 class AddAccountPage extends StatefulWidget {
@@ -54,10 +56,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   if (_formKey.currentState!.validate()) {
                     if (update) {
                       updateAccount()
-                          .then((value) => Navigator.of(context).pop(true));
+                          .then((value) => Navigator.of(context).pop(true))
+                          .onError((error, stackTrace) => null);
                     } else {
-                      insertAccount();
-                      Navigator.of(context).pop(true);
+                      insertAccount()
+                          .then((value) => Navigator.of(context).pop(true))
+                          .onError((error, stackTrace) => null);
                     }
                   }
                 },
@@ -84,9 +88,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
           key: _formKey,
           child: Column(
             children: [
-              textForm('Nombre', 1, 18, nameTextController, false,true),
+              textForm('Nombre', 1, 18, nameTextController, false, true),
               const SizedBox(height: 20),
-              textForm('Monto', 1, null, amountTextController, true,false),
+              textForm('Monto', 1, 10, amountTextController, true, false),
             ],
           )),
       const SizedBox(height: 30),
@@ -125,26 +129,27 @@ class _AddAccountPageState extends State<AddAccountPage> {
             maxLines: lines,
             minLines: 1,
             controller: controller,
+            textInputAction: TextInputAction.next,
             validator: (value) {
-              if(band==true){
-              if (nameTextController.text == '') return 'Ingrese un nombre';}else if(band==false){
-              if (amountTextController.text == '') return 'Ingrese un monto';}
+              if (band == true) {
+                if (nameTextController.text == '') return 'Ingrese un nombre';
+              } else if (band == false) {
+                if (amountTextController.text == '') return 'Ingrese un monto';
+              }
               return null;
             },
             decoration: InputDecoration(
-                counterText: "",
-                suffixIcon: IconButton(
-                    iconSize: 18,
-                    onPressed: () {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      controller.clear();
-                    },
-                    icon: const Icon(Icons.clear)),
-                labelText: name,
-                enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)),
-                focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(width: 1.0)))));
+              counterText: "",
+              suffixIcon: IconButton(
+                  focusNode: FocusNode(skipTraversal: true),
+                  iconSize: 18,
+                  onPressed: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    controller.clear();
+                  },
+                  icon: const Icon(Icons.clear)),
+              labelText: name,
+            )));
   }
 
   initTaskInfo() {
@@ -197,24 +202,48 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  insertAccount() {
-    AccountDB.insert(Account(
-        id: m.ObjectId(),
-        name: nameTextController.text,
-        amount: int.parse(amountTextController.text),
-        icon: iconChoosed.codePoint,
-        color: _shadeColor!.value,
-        uid: userFire!.uid.toString()));
+  Future insertAccount() async {
+    try {
+      await AccountDB.insert(Account(
+          id: m.ObjectId(),
+          name: nameTextController.text,
+          amount: int.parse(amountTextController.text),
+          icon: iconChoosed.codePoint,
+          color: _shadeColor!.value,
+          uid: userFire!.uid.toString()));
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 
   Future updateAccount() async {
-    await AccountDB.update(Account(
-        id: widget.accountInfo!.id,
-        name: nameTextController.text,
-        amount: int.parse(amountTextController.text),
-        icon: iconChoosed.codePoint,
-        color: _shadeColor!.value,
-        uid: widget.accountInfo!.uid));
+    try {
+      await AccountDB.update(Account(
+          id: widget.accountInfo!.id,
+          name: nameTextController.text,
+          amount: int.parse(amountTextController.text),
+          icon: iconChoosed.codePoint,
+          color: _shadeColor!.value,
+          uid: widget.accountInfo!.uid));
+    } catch (e) {
+      if (e == ("Internet error")) {
+        showAlertDialog(context, 'Problema de conexión',
+            'Comprueba si existe conexión a internet e inténtalo más tarde.');
+      } else {
+        showAlertDialog(context, 'Problema con el servidor',
+            'Es posible que alguno de los servicios no esté funcionando correctamente. Recomendamos que vuelva a intentarlo más tarde.');
+      }
+      setState(() {});
+      return Future.error(e);
+    }
   }
 }
 
