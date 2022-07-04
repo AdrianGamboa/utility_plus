@@ -38,54 +38,43 @@ class _FinancePageState extends State<FinancePage> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(100.0),
-            child: AppBar(
-                flexibleSpace: Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.monetization_on,
-                              size: 35, color: Colors.white),
-                          const SizedBox(width: 10),
-                          selectedValue != ''
-                              ? buildAccounts()
-                              : const CircularProgressIndicator()
-                        ],
-                      ),
-                      const Spacer(),
-                      Container(
-                          // margin: const EdgeInsets.only(top: 14.0),
-                          child: selectedValue != null
-                              ? Text(
-                                  amount.length > 10
-                                      ? '${amount.substring(0, 12)}...'
-                                      : amount,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 34 - amount.length.toDouble(),
-                                      fontWeight: FontWeight.w700))
-                              : const Text(
-                                  '₡ 0',
-                                )),
-                      const SizedBox(height: 30)
-                    ],
-                  ),
-                ),
-                bottom: const TabBar(
-                    labelColor: Colors.white,
-                    indicatorColor: Color(0xffAD53AE),
-                    unselectedLabelColor: Colors.white54,
-                    tabs: [
-                      Tab(child: Text('Gastos')),
-                      Tab(child: Text('Ingresos'))
-                    ]))),
+        appBar: AppBar(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.monetization_on,
+                    size: 35, color: Colors.white),
+                const SizedBox(width: 10),
+                selectedValue != ''
+                    ? buildAccounts()
+                    : const CircularProgressIndicator(),
+                const Spacer(),
+                Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    child: selectedValue != null
+                        ? Text(
+                            amount.length > 10
+                                ? '${amount.substring(0, 12)}...'
+                                : amount,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 34 - amount.length.toDouble(),
+                                fontWeight: FontWeight.w700))
+                        : const Text(
+                            '₡ 0',
+                          )),
+                const SizedBox(height: 30)
+              ],
+            ),
+            bottom: const TabBar(
+                labelColor: Colors.white,
+                indicatorColor: Color(0xffAD53AE),
+                unselectedLabelColor: Colors.white54,
+                tabs: [
+                  Tab(child: Text('Gastos')),
+                  Tab(child: Text('Ingresos'))
+                ])),
         body: TabBarView(children: [
           transactionContent("Expense"),
           transactionContent("Income")
@@ -303,28 +292,22 @@ class _FinancePageState extends State<FinancePage> {
 
     for (var element in accountList) {
       itemList.add(DropdownMenuItem(
-          value: element['_id'].toString(), child: Text(element['name'])));
+          value: element['_id'].toString(),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 100),
+            child: Text(
+              element['name'],
+            ),
+          )));
     }
 
     return DropdownButton(
       borderRadius: const BorderRadius.all(Radius.circular(15)),
       iconEnabledColor: Colors.white,
+      dropdownColor: Theme.of(context).appBarTheme.backgroundColor,
       value: selectedValue,
+      style: const TextStyle(color: Colors.white),
       items: itemList,
-      selectedItemBuilder: (BuildContext ctxt) {
-        return itemList.map<Widget>((item) {
-          return DropdownMenuItem(
-              value: item.value,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 100),
-                child: Text(
-                    item.child
-                        .toString()
-                        .substring(6, item.child.toString().length - 2),
-                    style: const TextStyle(color: Colors.white)),
-              ));
-        }).toList();
-      },
       onChanged: (String? value) {
         setState(() {
           selectedValue = value!;

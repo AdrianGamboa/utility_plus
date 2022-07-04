@@ -112,18 +112,14 @@ class _TransactionPageState extends State<TransactionPage> {
           key: _formKey,
           child: Column(
             children: [
-              textForm(
-                'Título',
-                1,
-                18,
-                titleTextController,
-                false,
-              ),
+              textForm('Título', 1, 18, titleTextController, false,
+                  'Ingrese un título'),
               const SizedBox(height: 20),
               textForm(
-                  'Descripción', 2, null, descriptionTextController, false),
+                  'Descripción', 2, null, descriptionTextController, false, ''),
               const SizedBox(height: 20),
-              textForm('Monto', 1, null, amountTextController, true),
+              textForm('Monto', 1, null, amountTextController, true,
+                  'Ingrese un monto'),
               const SizedBox(height: 20),
               datePicker(),
               const SizedBox(height: 20),
@@ -133,7 +129,7 @@ class _TransactionPageState extends State<TransactionPage> {
     ]);
   }
 
-  Widget textForm(name, lines, lenght, controller, numKeyboard) {
+  Widget textForm(name, lines, lenght, controller, numKeyboard, String msg) {
     return SizedBox(
         width: 320,
         child: TextFormField(
@@ -147,8 +143,7 @@ class _TransactionPageState extends State<TransactionPage> {
             controller: controller,
             textInputAction: TextInputAction.next,
             validator: (value) {
-              if (titleTextController.text == '') return 'Ingrese un nombre';
-              if (amountTextController.text == '') return 'Ingrese un monto';
+              if (controller.text == '' && msg != '') return msg;
               return null;
             },
             decoration: InputDecoration(

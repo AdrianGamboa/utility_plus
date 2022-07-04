@@ -62,8 +62,12 @@ class _MainPageState extends State<MainPage>
               PopupMenuButton<String>(
                 onSelected: handleClick,
                 itemBuilder: (BuildContext context) {
-                  return {'Perfil', 'Acerca de', 'Cerrar sesión'}
-                      .map((String choice) {
+                  return {
+                    'Perfil',
+                    'Acerca de',
+                    'Términos y Condiciones',
+                    'Cerrar sesión'
+                  }.map((String choice) {
                     return PopupMenuItem<String>(
                       value: choice,
                       child: Text(choice),
@@ -182,6 +186,9 @@ class _MainPageState extends State<MainPage>
         break;
       case 'Acerca de':
         Navigator.of(context).pushNamed('/about');
+        break;
+      case 'Términos y Condiciones':
+        Navigator.of(context).pushNamed('/conditionsterms');
         break;
       case 'Cerrar sesión':
         AuthenticationService()

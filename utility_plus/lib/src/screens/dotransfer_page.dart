@@ -27,7 +27,7 @@ class _DotransferPageState extends State<DotransferPage> {
   DateTime? date;
   TimeOfDay? time;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final nameTextController = TextEditingController();
+  final descriptionTextController = TextEditingController();
   final amountTextController = TextEditingController();
   final dateTextController = TextEditingController();
   late String selectedValue1 = '';
@@ -110,9 +110,10 @@ class _DotransferPageState extends State<DotransferPage> {
           key: _formKey,
           child: Column(
             children: [
-              textForm('Monto', 1, null, amountTextController, true),
+              textForm('Monto', 1, null, amountTextController, true, true),
               const SizedBox(height: 20),
-              textForm('Descripción', 1, 18, nameTextController, false),
+              textForm('Descripción', 1, 18, descriptionTextController, false,
+                  false),
               const SizedBox(height: 20),
               dateTimePicker(),
               const SizedBox(height: 20),
@@ -209,7 +210,7 @@ class _DotransferPageState extends State<DotransferPage> {
     });
   }
 
-  Widget textForm(name, lines, lenght, controller, numKeyboard) {
+  Widget textForm(name, lines, lenght, controller, numKeyboard, bool band) {
     return SizedBox(
         width: 320,
         child: TextFormField(
@@ -223,8 +224,8 @@ class _DotransferPageState extends State<DotransferPage> {
             controller: controller,
             textInputAction: TextInputAction.next,
             validator: (value) {
-              if (nameTextController.text == '') return 'Ingrese un nombre';
-              if (amountTextController.text == '') return 'Ingrese un monto';
+              if (amountTextController.text == '' && band)
+                return 'Ingrese un monto';
               return null;
             },
             decoration: InputDecoration(
@@ -297,7 +298,7 @@ class _DotransferPageState extends State<DotransferPage> {
 
   initTransferInfo() {
     if (widget.transferInfo != null) {
-      nameTextController.text = widget.transferInfo!.description;
+      descriptionTextController.text = widget.transferInfo!.description;
       amountTextController.text = widget.transferInfo!.amount.toString();
       dateTextController.text = widget.transferInfo!.transferDate!;
       selectedValue1 = widget.transferInfo!.cuentaDebita.toString();
@@ -308,7 +309,7 @@ class _DotransferPageState extends State<DotransferPage> {
 
   clearTxt() {
     FocusScope.of(context).requestFocus(FocusNode());
-    nameTextController.clear();
+    descriptionTextController.clear();
     amountTextController.clear();
     dateTextController.clear();
     selectedValue1 = '';
@@ -359,7 +360,7 @@ class _DotransferPageState extends State<DotransferPage> {
           int.parse(amountTextController.text)) {
         await TransferDB.insert(Transfer(
             id: m.ObjectId(),
-            description: nameTextController.text,
+            description: descriptionTextController.text,
             amount: int.parse(amountTextController.text),
             transferDate: dateTextController.text,
             cuentaDebita: m.ObjectId.parse(selectedValue1.substring(10, 34)),
@@ -388,7 +389,7 @@ class _DotransferPageState extends State<DotransferPage> {
           int.parse(amountTextController.text)) {
         await TransferDB.update(Transfer(
           id: widget.transferInfo!.id,
-          description: nameTextController.text,
+          description: descriptionTextController.text,
           amount: int.parse(amountTextController.text),
           cuentaDebita: m.ObjectId.parse(selectedValue1.substring(10, 34)),
           cuentaAcredita: m.ObjectId.parse(selectedValue2.substring(10, 34)),

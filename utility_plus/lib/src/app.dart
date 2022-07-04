@@ -9,6 +9,7 @@ import 'package:utility_plus/src/screens/note_create_page.dart';
 import 'package:utility_plus/src/screens/splash_page.dart';
 import 'package:utility_plus/src/theme/theme_constants.dart';
 import 'package:utility_plus/src/utils/global.dart';
+import 'screens/conditions_terms_page.dart';
 import 'screens/recoverpass_page.dart';
 
 class MyApp extends StatefulWidget {
@@ -82,6 +83,8 @@ class _MyAppState extends State<MyApp> {
           "/notecreate": (BuildContext context) => const NoteCreate(),
           "/recoverPass": (BuildContext context) => const RecoverPassPage(),
           "/accounts": (BuildContext context) => const AccountPage(),
+          "/conditionsterms": (BuildContext context) =>
+              const ConditionsTermsPage(),
         });
   }
 }

@@ -2,7 +2,7 @@
     package="com.example.utility_plus">
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="utility_plus"
+        android:label="Utility+"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

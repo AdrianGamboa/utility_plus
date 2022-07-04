@@ -221,18 +221,21 @@ class _RegisterPageState extends State<RegisterPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const CheckBoxFormField(),
-                        Text.rich(
+                        const Text.rich(
                           TextSpan(
                             text: "Aceptar ",
-                            children: [
-                              TextSpan(
-                                  text: "términos y condiciones",
-                                  style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w600))
-                            ],
+                            children: [],
                           ),
                         ),
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed('/conditionsterms');
+                            },
+                            child: Text("términos y condiciones",
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.w600))),
                       ],
                     ),
                     SizedBox(

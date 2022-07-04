@@ -11,7 +11,7 @@ ThemeData lightTheme = ThemeData(
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
             padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0)),
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0))),
